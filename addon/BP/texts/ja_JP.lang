@@ -1,0 +1,5 @@
+pack.name=転スラ風スライムアドオン [BP]
+pack.description=人間を取り込むことで人化できるスライムMOB。
+
+entity.tensura:slime.name=スライム
+entity.tensura:human_form.name=人化形態

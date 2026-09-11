@@ -1,0 +1,5 @@
+pack.name=Tensura Slime Addon [BP]
+pack.description=A slime that can absorb a human to unlock a human form.
+
+entity.tensura:slime.name=Slime
+entity.tensura:human_form.name=Human Form

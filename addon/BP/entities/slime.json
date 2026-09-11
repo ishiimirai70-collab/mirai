@@ -1,0 +1,139 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "tensura:slime",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {}
+    },
+    "component_groups": {
+      "tensura:awakened": {
+        "minecraft:mark_variant": {
+          "value": 1
+        },
+        "minecraft:interact": {
+          "interactions": [
+            {
+              "on_interact": {
+                "event": "tensura:transform_to_human",
+                "target": "self"
+              },
+              "cooldown": 1.0,
+              "swing": false,
+              "play_sounds": ["mob.slime.big"]
+            }
+          ]
+        }
+      },
+      "tensura:begin_transform_to_human": {
+        "minecraft:transformation": {
+          "into": "tensura:human_form",
+          "delay": {
+            "value": 0.4
+          },
+          "begin_transform_sound": "mob.slime.big",
+          "transformation_sound": "mob.shulker.close",
+          "keep_owner": true,
+          "add": {
+            "component_groups": ["tensura:human_awakened"]
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": ["tensura_slime", "monster", "mob"]
+      },
+      "minecraft:collision_box": {
+        "width": 1.04,
+        "height": 1.04
+      },
+      "minecraft:health": {
+        "value": 20,
+        "max": 20
+      },
+      "minecraft:variant": {
+        "value": 2
+      },
+      "minecraft:movement": {
+        "value": 0.3
+      },
+      "minecraft:movement.jump": {
+        "jump_delay": [0.3, 1.0]
+      },
+      "minecraft:jump.static": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:navigation.walk": {
+        "avoid_water": true,
+        "can_path_over_water": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {}
+      },
+      "minecraft:behavior.slime_float": {
+        "priority": 1
+      },
+      "minecraft:behavior.slime_keep_on_jumping": {
+        "priority": 6
+      },
+      "minecraft:behavior.slime_random_direction": {
+        "priority": 5
+      },
+      "minecraft:behavior.slime_attack": {
+        "priority": 3
+      },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": true,
+        "within_radius": 16,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "villager"
+            },
+            "max_dist": 16
+          }
+        ]
+      },
+      "minecraft:area_attack": {
+        "cause": "entity_attack",
+        "damage_cooldown": 0.5,
+        "damage_per_tick": 3,
+        "damage_range": 0.6,
+        "entity_filter": {
+          "any_of": [
+            {
+              "test": "is_family",
+              "subject": "other",
+              "value": "villager"
+            }
+          ]
+        }
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/tensura_slime.json"
+      }
+    },
+    "events": {
+      "tensura:on_absorb": {
+        "add": {
+          "component_groups": ["tensura:awakened"]
+        }
+      },
+      "tensura:transform_to_human": {
+        "add": {
+          "component_groups": ["tensura:begin_transform_to_human"]
+        }
+      }
+    }
+  }
+}

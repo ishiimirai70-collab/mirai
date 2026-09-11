@@ -1,0 +1,26 @@
+{
+  "format_version": "1.8.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "tensura:human_form",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/tensura/human_form"
+      },
+      "geometry": {
+        "default": "geometry.humanoid.custom"
+      },
+      "scripts": {
+        "animate": ["move", "look_at_target"]
+      },
+      "animations": {
+        "move": "animation.humanoid.move",
+        "look_at_target": "controller.animation.humanoid.look_at_target"
+      },
+      "render_controllers": ["controller.render.tensura_human_form"],
+      "enable_attachables": true
+    }
+  }
+}

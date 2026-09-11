@@ -1,0 +1,96 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "tensura:human_form",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {}
+    },
+    "component_groups": {
+      "tensura:human_awakened": {
+        "minecraft:interact": {
+          "interactions": [
+            {
+              "on_interact": {
+                "event": "tensura:transform_to_slime",
+                "target": "self"
+              },
+              "cooldown": 1.0,
+              "swing": false,
+              "play_sounds": ["mob.shulker.close"]
+            }
+          ]
+        }
+      },
+      "tensura:begin_transform_to_slime": {
+        "minecraft:transformation": {
+          "into": "tensura:slime",
+          "delay": {
+            "value": 0.4
+          },
+          "begin_transform_sound": "mob.shulker.close",
+          "transformation_sound": "mob.slime.big",
+          "keep_owner": true,
+          "add": {
+            "component_groups": ["tensura:awakened"]
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": ["tensura_human", "mob"]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 1.9
+      },
+      "minecraft:health": {
+        "value": 20,
+        "max": 20
+      },
+      "minecraft:movement": {
+        "value": 0.25
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:navigation.walk": {
+        "avoid_water": true,
+        "can_path_over_water": false
+      },
+      "minecraft:nameable": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {}
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 6,
+        "speed_multiplier": 1.0
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 7,
+        "look_distance": 8.0,
+        "probability": 0.02
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1
+      }
+    },
+    "events": {
+      "tensura:transform_to_slime": {
+        "add": {
+          "component_groups": ["tensura:begin_transform_to_slime"]
+        }
+      }
+    }
+  }
+}
