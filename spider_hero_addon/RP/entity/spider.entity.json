@@ -1,0 +1,24 @@
+{
+  "format_version": "1.8.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "webhero:spider",
+      "materials": {
+        "default": "spider"
+      },
+      "textures": {
+        "default": "textures/entity/webhero/spider"
+      },
+      "geometry": {
+        "default": "geometry.spider"
+      },
+      "scripts": {
+        "animate": ["move"]
+      },
+      "animations": {
+        "move": "animation.spider.move"
+      },
+      "render_controllers": ["controller.render.spider"]
+    }
+  }
+}

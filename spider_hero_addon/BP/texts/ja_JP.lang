@@ -1,0 +1,5 @@
+pack.name=蜘蛛男風変身アドオン [BP]
+pack.description=人間を噛むことで覆面ヒーローに変身できる怪異グモMOB。
+
+entity.webhero:spider.name=怪異グモ
+entity.webhero:hero_form.name=ヒーロー形態

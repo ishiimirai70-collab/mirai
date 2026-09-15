@@ -1,0 +1,5 @@
+pack.name=Spider Hero Addon [BP]
+pack.description=A mutant spider that can bite a human to unlock a masked hero form.
+
+entity.webhero:spider.name=Mutant Spider
+entity.webhero:hero_form.name=Hero Form
