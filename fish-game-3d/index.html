@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>つりずかん</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --sea-deep: #062338;
+    --gold: #ffcb47;
+    --gold-dark: #e0a723;
+    --foam: #eaf6ff;
+    --foam-dim: #b7d4e6;
+    --danger: #e0554f;
+    --font-display: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    --font-body: "Zen Maru Gothic", "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100%; background: var(--sea-deep); color: var(--foam); font-family: var(--font-body); overflow: hidden; }
+  html { height: 100%; }
+
+  #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+  #top-nav {
+    position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    z-index: 20; display: flex; gap: 8px; background: rgba(6,25,40,0.55);
+    padding: 6px; border-radius: 999px; backdrop-filter: blur(6px);
+  }
+  .nav-btn {
+    border: none; background: transparent; color: var(--foam-dim);
+    font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+    padding: 7px 16px; border-radius: 999px; cursor: pointer;
+  }
+  .nav-btn.active { background: var(--gold); color: #3a2600; }
+
+  #dex-btn {
+    position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 20;
+    border: none; background: rgba(6,25,40,0.55); color: var(--foam);
+    font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+    padding: 9px 14px; border-radius: 999px; cursor: pointer; backdrop-filter: blur(6px);
+  }
+
+  #canvas-wrap { position: absolute; inset: 0; }
+  #scene { display: block; width: 100%; height: 100%; }
+
+  #hud-bottom {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    background: linear-gradient(180deg, transparent, rgba(3,15,25,0.65) 40%);
+    pointer-events: none;
+  }
+  #hud-bottom > * { pointer-events: auto; }
+
+  #log-bar {
+    background: rgba(6,25,40,0.6); border-radius: 999px; padding: 6px 16px;
+    font-size: 0.82rem; max-width: 90%; text-align: center;
+  }
+
+  .big-btn {
+    background: var(--gold); color: #3a2600; border: none; border-radius: 999px;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
+    padding: 14px 32px; cursor: pointer; box-shadow: 0 5px 0 var(--gold-dark);
+    transition: transform 0.08s ease;
+  }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--gold-dark); }
+  .big-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .big-btn:focus-visible { outline: 3px solid var(--foam); outline-offset: 2px; }
+
+  #hook-btn { position: relative; overflow: hidden; }
+  #hook-ring {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 100%;
+    background: rgba(255,255,255,0.35); transform-origin: left center;
+    pointer-events: none;
+  }
+  #hook-btn span { position: relative; z-index: 1; }
+
+  #reel-wrap { width: min(420px, 90vw); display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .reel-meters { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .reel-track { width: 100%; height: 12px; background: rgba(0,0,0,0.4); border-radius: 999px; overflow: hidden; }
+  .reel-track.time .reel-fill { background: var(--danger); }
+  .reel-fill { height: 100%; width: 0%; background: #4fd67c; transition: width 0.08s linear; }
+
+  #reel-btn.shake { animation: shakeAnim 0.2s ease; }
+  @keyframes shakeAnim {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .stat-row { display: flex; gap: 8px; position: absolute; top: calc(60px + env(safe-area-inset-top, 0px)); left: 10px; z-index: 15; flex-wrap: wrap; }
+  .stat-pill {
+    background: rgba(6,25,40,0.55); border-radius: 999px; padding: 6px 12px;
+    font-size: 0.78rem; font-family: var(--font-display); font-variant-numeric: tabular-nums;
+  }
+
+  #toast-area {
+    position: absolute; top: calc(100px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 25;
+    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+  }
+  .toast {
+    background: rgba(6,25,40,0.75); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 6px 12px; font-size: 0.82rem;
+    animation: fadeUp 2.5s ease forwards;
+  }
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(6px); }
+    10% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-8px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { animation: none; opacity: 1; }
+  }
+
+  #catch-card {
+    position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+    background: rgba(3,10,18,0.6); opacity: 0; transition: opacity 0.2s ease;
+  }
+  #catch-card.show { opacity: 1; }
+  #catch-card[hidden] { display: none; }
+
+  .catch-card-inner {
+    background: linear-gradient(160deg, #123a52, #0a2233);
+    border: 2px solid var(--rc, var(--gold));
+    border-radius: 20px; padding: 26px 30px; text-align: center;
+    width: min(320px, 84vw);
+    box-shadow: 0 0 40px var(--rc, var(--gold));
+    transform: scale(0.85); transition: transform 0.25s ease;
+  }
+  #catch-card.show .catch-card-inner { transform: scale(1); }
+
+  .catch-rarity {
+    display: inline-block; font-family: var(--font-display); font-weight: 800;
+    color: var(--rc); border: 2px solid var(--rc); border-radius: 999px;
+    padding: 4px 16px; font-size: 0.85rem; margin-bottom: 10px;
+  }
+  .catch-new {
+    display: inline-block; background: var(--gold); color: #3a2600; font-weight: 800;
+    border-radius: 999px; padding: 2px 12px; font-size: 0.75rem; margin-left: 6px;
+  }
+  .catch-fish-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin: 10px 0 6px; }
+  .catch-fish-stats { display: flex; gap: 16px; justify-content: center; font-variant-numeric: tabular-nums; color: var(--foam-dim); margin-bottom: 8px; }
+  .catch-record { color: var(--gold); font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; }
+  .catch-card-inner #catch-close-btn { margin-top: 8px; padding: 10px 26px; font-size: 0.9rem; }
+
+  #dex-panel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 92vw);
+    background: #0f2f45; z-index: 30; transform: translateX(100%);
+    transition: transform 0.25s ease; display: flex; flex-direction: column;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    box-shadow: -8px 0 30px rgba(0,0,0,0.4);
+  }
+  #dex-panel.open { transform: translateX(0); }
+  .dex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .dex-header h2 { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
+  #dex-close { background: none; border: none; color: var(--foam); font-size: 1.4rem; cursor: pointer; }
+  #dex-progress { font-size: 0.8rem; color: var(--foam-dim); margin-bottom: 10px; }
+  #dex-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .dex-item { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px; }
+  .dex-item.locked { opacity: 0.55; }
+  .dex-swatch { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
+  .dex-name { font-family: var(--font-display); font-weight: 700; font-size: 0.88rem; }
+  .dex-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.72rem; color: var(--foam-dim); margin-top: 2px; }
+  .dex-rarity { color: var(--rc); font-weight: 700; }
+
+  #boot-error {
+    position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    padding: 24px; text-align: center; background: var(--sea-deep);
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 480px) {
+    .stat-row { top: calc(56px + env(safe-area-inset-top, 0px)); }
+    .catch-fish-name { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+
+
+<div id="app">
+  <div id="top-nav">
+    <button class="nav-btn active" id="tab-dock">🎣 つり場</button>
+    <button class="nav-btn" id="tab-tank">🐠 すいぞくかん</button>
+  </div>
+  <button id="dex-btn">📖 図鑑</button>
+
+  <div class="stat-row">
+    <div class="stat-pill">🐟 <span id="stat-catches">0</span>匹</div>
+    <div class="stat-pill">📘 <span id="stat-species">0/0</span></div>
+    <div class="stat-pill">🏅 <span id="stat-best">-</span></div>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="scene"></canvas>
+  </div>
+
+  <div id="toast-area"></div>
+
+  <div id="hud-bottom">
+    <div id="log-bar"><span id="log-text">ようこそ、つり場へ!</span></div>
+
+    <div id="dock-hud">
+      <button id="cast-btn" class="big-btn">🎣 なげる</button>
+      <button id="hook-btn" class="big-btn" hidden><div id="hook-ring"></div><span>❗ あわせる!</span></button>
+      <div id="reel-wrap" hidden>
+        <div class="reel-meters">
+          <div class="reel-track"><div class="reel-fill" id="reel-meter-fill"></div></div>
+          <div class="reel-track time"><div class="reel-fill" id="reel-time-fill"></div></div>
+        </div>
+        <button id="reel-btn" class="big-btn">🎣 まきとる!(おす)</button>
+      </div>
+    </div>
+
+    <div id="tank-hud" hidden>
+      <button id="feed-btn" class="big-btn">🍤 エサをあげる</button>
+    </div>
+  </div>
+
+  <div id="catch-card" hidden>
+    <div class="catch-card-inner">
+      <div id="catch-card-inner"></div>
+      <button id="catch-close-btn" class="big-btn">とじる</button>
+    </div>
+  </div>
+
+  <div id="dex-panel">
+    <div class="dex-header">
+      <h2>📖 さかな図鑑</h2>
+      <button id="dex-close">✕</button>
+    </div>
+    <div id="dex-progress"></div>
+    <div id="dex-list"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script>
+if (typeof THREE === "undefined") {
+  document.getElementById("app").innerHTML = '<div id="boot-error"><div><p style="font-family:sans-serif;font-size:1rem;">3D ライブラリの読み込みに失敗しました。<br>通信状態を確認して、ページを再読み込みしてください。</p></div></div>';
+} else {
+/* つりずかん 〜 3D つり × すいぞくかん ゲーム 〜 */
+(() => {
+  "use strict";
+
+  const SAVE_KEY = "fishing3dSave_v1";
+
+  // ---------------------------------------------------------------
+  // マスターデータ
+  // ---------------------------------------------------------------
+
+  const RARITY = {
+    common:     { label: "コモン",       weight: 55, color: "#9aa5b1", glow: false, reelTime: 5.0, tug: [4, 7],   tugInterval: [1.4, 2.2], hookWindow: 1.5 },
+    rare:       { label: "レア",         weight: 25, color: "#4fa3ff", glow: false, reelTime: 6.0, tug: [5, 9],   tugInterval: [1.2, 2.0], hookWindow: 1.3 },
+    superrare:  { label: "スーパーレア", weight: 13, color: "#b06bff", glow: true,  reelTime: 7.0, tug: [6, 11],  tugInterval: [1.0, 1.8], hookWindow: 1.15 },
+    ultra:      { label: "激レア",       weight: 6,  color: "#ffb703", glow: true,  reelTime: 8.0, tug: [8, 13],  tugInterval: [0.9, 1.6], hookWindow: 1.0 },
+    legendary:  { label: "伝説",         weight: 1,  color: "#ff6b9d", glow: true,  reelTime: 9.0, tug: [10, 16], tugInterval: [0.8, 1.4], hookWindow: 0.85, rainbow: true },
+  };
+  const REEL_HOLD_GAIN = 26;    // メーターの上昇速度 (%/秒, ボタンを押している間)
+  const REEL_RELEASE_DRAIN = 20; // メーターの下降速度 (%/秒, 離している間)
+  const RARITY_ORDER = ["common", "rare", "superrare", "ultra", "legendary"];
+
+  const SPECIES = [
+    { id: "iwashi",   name: "いわし",         rarity: "common",    color: "#cfd8e3", accent: "#5b7fa6", size: [10, 18],  weight: [0.05, 0.15], shape: "slim" },
+    { id: "aji",      name: "あじ",           rarity: "common",    color: "#8fd1c1", accent: "#3f7f73", size: [15, 25],  weight: [0.1, 0.3],   shape: "slim" },
+    { id: "funa",     name: "ふな",           rarity: "common",    color: "#c99a5b", accent: "#7a5a2e", size: [15, 30],  weight: [0.2, 0.6],   shape: "round" },
+    { id: "madai",    name: "まだい",         rarity: "rare",      color: "#ff8fa3", accent: "#d94f6b", size: [25, 45],  weight: [0.5, 2.0],   shape: "round" },
+    { id: "suzuki",   name: "すずき",         rarity: "rare",      color: "#c9d6de", accent: "#8a9aa5", size: [30, 55],  weight: [0.7, 2.5],   shape: "slim" },
+    { id: "nijimasu", name: "にじます",       rarity: "rare",      color: "#7fb8ff", accent: "#ff7fb0", size: [20, 40],  weight: [0.3, 1.2],   shape: "slim" },
+    { id: "kinmedai", name: "きんめだい",     rarity: "superrare", color: "#ff5d5d", accent: "#ffd166", size: [25, 40],  weight: [0.6, 1.8],   shape: "round" },
+    { id: "anko",     name: "ちょうちんあんこう", rarity: "superrare", color: "#3a2a4d", accent: "#c9a6ff", size: [15, 30],  weight: [0.3, 1.0],   shape: "blob" },
+    { id: "nishikigoi", name: "にしきごい",   rarity: "superrare", color: "#ffffff", accent: "#ff5b5b", size: [30, 60],  weight: [1.0, 4.0],   shape: "round" },
+    { id: "ryugu",    name: "りゅうぐうのつかい", rarity: "ultra",  color: "#d8e8ff", accent: "#8fc7ff", size: [80, 160], weight: [2.0, 8.0],   shape: "ribbon" },
+    { id: "manbo",    name: "まんぼう",       rarity: "ultra",     color: "#a9c9d6", accent: "#6f95a3", size: [60, 120], weight: [5.0, 20.0],  shape: "disc" },
+    { id: "kogane",   name: "こがねのぬし",   rarity: "legendary", color: "#ffd700", accent: "#fff2b0", size: [100, 200], weight: [10.0, 40.0], shape: "round" },
+  ];
+
+  const speciesById = (id) => SPECIES.find((s) => s.id === id);
+  const speciesByRarity = (r) => SPECIES.filter((s) => s.rarity === r);
+
+  // ---------------------------------------------------------------
+  // ユーティリティ
+  // ---------------------------------------------------------------
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const randInt = (a, b) => Math.floor(rand(a, b + 1));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  function rollRarity() {
+    const total = RARITY_ORDER.reduce((s, k) => s + RARITY[k].weight, 0);
+    let r = Math.random() * total;
+    for (const k of RARITY_ORDER) {
+      r -= RARITY[k].weight;
+      if (r <= 0) return k;
+    }
+    return "common";
+  }
+
+  // ---------------------------------------------------------------
+  // セーブデータ
+  // ---------------------------------------------------------------
+
+  let state = {
+    catches: [],       // { speciesId, rarity, size, weight, caughtAt }
+    bestSize: {},       // speciesId -> best size
+    totalCasts: 0,
+    totalCatches: 0,
+    lastFeedAt: 0,
+  };
+
+  function save() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function load() {
+    let raw;
+    try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { raw = null; }
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      state = Object.assign(state, data);
+    } catch (e) {}
+  }
+
+  function recordCatch(catchData) {
+    state.catches.push(catchData);
+    state.totalCatches++;
+    const best = state.bestSize[catchData.speciesId] || 0;
+    const isRecord = catchData.size > best;
+    if (isRecord) state.bestSize[catchData.speciesId] = catchData.size;
+    save();
+    return isRecord;
+  }
+
+  // ---------------------------------------------------------------
+  // DOM 参照
+  // ---------------------------------------------------------------
+
+  const canvas = document.getElementById("scene");
+  const tabDockBtn = document.getElementById("tab-dock");
+  const tabTankBtn = document.getElementById("tab-tank");
+  const dexBtn = document.getElementById("dex-btn");
+  const dexPanel = document.getElementById("dex-panel");
+  const dexClose = document.getElementById("dex-close");
+  const dexList = document.getElementById("dex-list");
+  const dexProgress = document.getElementById("dex-progress");
+
+  const castBtn = document.getElementById("cast-btn");
+  const hookBtn = document.getElementById("hook-btn");
+  const hookRing = document.getElementById("hook-ring");
+  const reelWrap = document.getElementById("reel-wrap");
+  const reelBtn = document.getElementById("reel-btn");
+  const reelMeterFill = document.getElementById("reel-meter-fill");
+  const reelTimeFill = document.getElementById("reel-time-fill");
+  const feedBtn = document.getElementById("feed-btn");
+  const logText = document.getElementById("log-text");
+  const toastArea = document.getElementById("toast-area");
+  const catchCard = document.getElementById("catch-card");
+  const catchCardInner = document.getElementById("catch-card-inner");
+  const catchCloseBtn = document.getElementById("catch-close-btn");
+  const statCatches = document.getElementById("stat-catches");
+  const statSpecies = document.getElementById("stat-species");
+  const statBest = document.getElementById("stat-best");
+
+  function log(msg) { logText.textContent = msg; }
+
+  function toast(msg) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
+    toastArea.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  }
+
+  // ---------------------------------------------------------------
+  // Three.js セットアップ
+  // ---------------------------------------------------------------
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+
+  const scene = new THREE.Scene();
+
+  function makeSkyTexture() {
+    const c = document.createElement("canvas");
+    c.width = 8; c.height = 256;
+    const ctx2 = c.getContext("2d");
+    const g = ctx2.createLinearGradient(0, 0, 0, 256);
+    g.addColorStop(0, "#1c5f8f");
+    g.addColorStop(0.55, "#5fb3d9");
+    g.addColorStop(1, "#cdeaf0");
+    ctx2.fillStyle = g;
+    ctx2.fillRect(0, 0, 8, 256);
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+  scene.background = makeSkyTexture();
+  scene.fog = new THREE.Fog(0x8fd0e6, 40, 150);
+
+  const BASE_HFOV_DEG = 62; // 画面比率が変わっても横方向の見え方を一定に保つ基準
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 400);
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x4a3a2a, 0.85);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff4d6, 1.15);
+  sun.position.set(12, 20, 8);
+  scene.add(sun);
+
+  // ---- カメラプリセット ----
+  const CAM_DOCK = { pos: new THREE.Vector3(0, 5.6, 15), look: new THREE.Vector3(0, 1.6, -20) };
+  const CAM_TANK = { pos: new THREE.Vector3(160, 3.2, 12), look: new THREE.Vector3(160, 1.8, 0) };
+  let camTarget = CAM_DOCK;
+  let camPos = CAM_DOCK.pos.clone();
+  let camLook = CAM_DOCK.look.clone();
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+
+  // ---------------------------------------------------------------
+  // 海 (シェーダー水面)
+  // ---------------------------------------------------------------
+
+  const waterGeo = new THREE.PlaneGeometry(240, 200, 80, 60);
+  const waterMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uDeep: { value: new THREE.Color(0x0d4f74) },
+      uShallow: { value: new THREE.Color(0x3fa9c9) },
+      uFoam: { value: new THREE.Color(0xeaffff) },
+    },
+    vertexShader: `
+      uniform float uTime;
+      varying float vElevation;
+      void main() {
+        vec3 pos = position;
+        float wave = sin(pos.x * 0.14 + uTime * 1.1) * 0.35
+                   + sin(pos.y * 0.20 - uTime * 0.8) * 0.28
+                   + sin((pos.x + pos.y) * 0.07 + uTime * 0.5) * 0.4;
+        pos.z += wave;
+        vElevation = wave;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      }
+    `,
+    fragmentShader: `
+      precision mediump float;
+      varying float vElevation;
+      uniform vec3 uDeep;
+      uniform vec3 uShallow;
+      uniform vec3 uFoam;
+      void main() {
+        float e = clamp(vElevation * 0.55 + 0.5, 0.0, 1.0);
+        vec3 color = mix(uDeep, uShallow, e);
+        float foam = smoothstep(0.8, 0.98, e);
+        color = mix(color, uFoam, foam * 0.5);
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `,
+  });
+  const ocean = new THREE.Mesh(waterGeo, waterMat);
+  ocean.rotation.x = -Math.PI / 2;
+  ocean.position.set(0, 0, -101);
+  scene.add(ocean);
+
+  // ---------------------------------------------------------------
+  // 釣り場: 桟橋 & プレイヤー
+  // ---------------------------------------------------------------
+
+  const dockGroup = new THREE.Group();
+  scene.add(dockGroup);
+
+  function makeBoxMesh(w, h, d, color, opts) {
+    const geo = new THREE.BoxGeometry(w, h, d);
+    const mat = new THREE.MeshStandardMaterial(Object.assign({ color, flatShading: true, roughness: 0.85, metalness: 0.05 }, opts || {}));
+    return new THREE.Mesh(geo, mat);
+  }
+
+  // 桟橋の板
+  const plankColors = [0x8a5a34, 0x9a6a3e];
+  for (let i = 0; i < 10; i++) {
+    const plank = makeBoxMesh(1.1, 0.28, 12, plankColors[i % 2]);
+    plank.position.set(-5 + i * 1.15, 0, 4);
+    dockGroup.add(plank);
+  }
+  // 支柱
+  for (const [px, pz] of [[-5.2, -1], [5.2, -1], [-5.2, 9], [5.2, 9]]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 3.2, 8), new THREE.MeshStandardMaterial({ color: 0x5c3d22, flatShading: true }));
+    post.position.set(px, -1.4, pz);
+    dockGroup.add(post);
+  }
+
+  // プレイヤー (簡易ブロックキャラ)
+  const player = new THREE.Group();
+  const skinColor = 0xffd9a8;
+  const shirtColor = 0x3fb6c9;
+  const pantsColor = 0x2e4a7a;
+  const legL = makeBoxMesh(0.32, 0.7, 0.32, pantsColor); legL.position.set(-0.18, 0.35, 0);
+  const legR = makeBoxMesh(0.32, 0.7, 0.32, pantsColor); legR.position.set(0.18, 0.35, 0);
+  const torso = makeBoxMesh(0.72, 0.85, 0.42, shirtColor); torso.position.set(0, 1.12, 0);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), new THREE.MeshStandardMaterial({ color: skinColor, flatShading: true }));
+  head.position.set(0, 1.72, 0);
+  const cap = makeBoxMesh(0.46, 0.16, 0.46, 0xffb703); cap.position.set(0, 1.92, 0);
+  const armL = makeBoxMesh(0.22, 0.58, 0.22, shirtColor); armL.position.set(-0.46, 1.15, 0);
+  const armR = new THREE.Group();
+  const armRMesh = makeBoxMesh(0.22, 0.58, 0.22, shirtColor);
+  armRMesh.position.set(0, -0.29, 0);
+  armR.add(armRMesh);
+  armR.position.set(0.5, 1.45, 0);
+  armR.rotation.x = -1.0;
+
+  player.add(legL, legR, torso, head, cap, armL, armR);
+  player.position.set(0, 0.5, 6.2);
+  player.rotation.y = Math.PI;
+  dockGroup.add(player);
+
+  // 釣り竿
+  const rod = new THREE.Group();
+  const rodHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.5, 6), new THREE.MeshStandardMaterial({ color: 0x3a2a1a, flatShading: true }));
+  rodHandle.position.set(0, 0.25, 0);
+  const rodPole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.045, 2.6, 6), new THREE.MeshStandardMaterial({ color: 0x666666, flatShading: true }));
+  rodPole.position.set(0, 1.5, 0);
+  rod.add(rodHandle, rodPole);
+  rod.position.set(0, -0.31, 0.14);
+  rod.rotation.x = 0.5;
+  armRMesh.add(rod);
+
+  // 竿先のワールド座標を計算するためのダミー
+  const rodTipLocal = new THREE.Vector3(0, 2.75, 0);
+  const rodTipWorld = new THREE.Vector3();
+
+  // 釣り糸
+  const lineGeo = new THREE.BufferGeometry();
+  const linePositions = new Float32Array(2 * 3);
+  lineGeo.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+  const fishingLine = new THREE.Line(lineGeo, lineMat);
+  fishingLine.frustumCulled = false;
+  scene.add(fishingLine);
+
+  // ウキ (bobber)
+  const bobber = new THREE.Group();
+  const bobTop = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xff4d4d, flatShading: true }));
+  const bobBottom = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true }));
+  bobber.add(bobTop, bobBottom);
+  bobber.visible = false;
+  scene.add(bobber);
+
+  // ---------------------------------------------------------------
+  // 魚メッシュ生成
+  // ---------------------------------------------------------------
+
+  function createFishMesh(sp) {
+    const group = new THREE.Group();
+    const rarityDef = RARITY[sp.rarity];
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: sp.color, flatShading: true, roughness: 0.55, metalness: 0.1,
+      emissive: rarityDef.glow ? new THREE.Color(sp.color) : 0x000000,
+      emissiveIntensity: rarityDef.glow ? 0.35 : 0,
+    });
+    const accentMat = new THREE.MeshStandardMaterial({ color: sp.accent, flatShading: true, roughness: 0.6 });
+
+    let bodyScale = [1, 0.75, 0.55];
+    if (sp.shape === "slim") bodyScale = [1.5, 0.55, 0.42];
+    else if (sp.shape === "round") bodyScale = [1.0, 0.9, 0.65];
+    else if (sp.shape === "blob") bodyScale = [0.95, 0.85, 0.85];
+    else if (sp.shape === "ribbon") bodyScale = [2.6, 0.32, 0.22];
+    else if (sp.shape === "disc") bodyScale = [1.2, 1.5, 0.42];
+
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), bodyMat);
+    body.scale.set(...bodyScale);
+    group.add(body);
+
+    const tailLen = sp.shape === "ribbon" ? 0.3 : 0.55;
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.32 * bodyScale[1] * 2, tailLen, 4), accentMat);
+    tail.rotation.z = Math.PI / 2;
+    tail.position.set(-0.5 * bodyScale[0] - tailLen * 0.4, 0, 0);
+    group.add(tail);
+
+    const finTop = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.34, 3), accentMat);
+    finTop.position.set(0, 0.34 * bodyScale[1] * 2, 0);
+    finTop.rotation.z = Math.PI;
+    group.add(finTop);
+
+    const eyeGeo = new THREE.SphereGeometry(0.06, 6, 6);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101418 });
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeL.position.set(0.42 * bodyScale[0], 0.08, 0.18 * bodyScale[2] * 2);
+    const eyeR = eyeL.clone();
+    eyeR.position.z *= -1;
+    group.add(eyeL, eyeR);
+
+    if (sp.id === "anko") {
+      const lureStem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 5), accentMat);
+      lureStem.position.set(0.4, 0.55, 0);
+      lureStem.rotation.z = -0.5;
+      const lureBulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshStandardMaterial({ color: 0xfff2b0, emissive: 0xfff2b0, emissiveIntensity: 1.2 }));
+      lureBulb.position.set(0.62, 0.78, 0);
+      group.add(lureStem, lureBulb);
+    }
+
+    group.userData.rarity = sp.rarity;
+    group.userData.rainbow = !!rarityDef.rainbow;
+    group.userData.bodyMat = bodyMat;
+    return group;
+  }
+
+  // ---------------------------------------------------------------
+  // 水そう (すいぞくかん)
+  // ---------------------------------------------------------------
+
+  const TANK_ORIGIN = new THREE.Vector3(160, 0, 0);
+  const TANK_SIZE = { x: 14, y: 6, z: 8 };
+  const tankGroup = new THREE.Group();
+  tankGroup.position.copy(TANK_ORIGIN);
+  scene.add(tankGroup);
+
+  // 背景の壁 (遠くの海が透けて見えないようにする室内風の壁)
+  const backdrop = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 30),
+    new THREE.MeshStandardMaterial({ color: 0x0f3350, flatShading: true })
+  );
+  backdrop.position.set(0, 10, -TANK_SIZE.z / 2 - 4);
+  tankGroup.add(backdrop);
+  const groundPlane = makeBoxMesh(60, 0.4, 30, 0x123a24);
+  groundPlane.position.set(0, -0.4, -6);
+  tankGroup.add(groundPlane);
+
+  const tankFloor = makeBoxMesh(TANK_SIZE.x, 0.4, TANK_SIZE.z, 0xe3c988);
+  tankFloor.position.set(0, -0.2, 0);
+  tankGroup.add(tankFloor);
+
+  const tankWater = new THREE.Mesh(
+    new THREE.BoxGeometry(TANK_SIZE.x - 0.4, TANK_SIZE.y - 0.6, TANK_SIZE.z - 0.4),
+    new THREE.MeshPhysicalMaterial({ color: 0x2ea8c9, transparent: true, opacity: 0.45, roughness: 0.15, metalness: 0 })
+  );
+  tankWater.position.set(0, TANK_SIZE.y / 2 - 0.3, 0);
+  tankGroup.add(tankWater);
+
+  const tankGlass = new THREE.Mesh(
+    new THREE.BoxGeometry(TANK_SIZE.x, TANK_SIZE.y, TANK_SIZE.z),
+    new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0, side: THREE.DoubleSide })
+  );
+  tankGlass.position.set(0, TANK_SIZE.y / 2, 0);
+  tankGroup.add(tankGlass);
+
+  // ガラスのフチ (視認性のための枠)
+  for (const cx of [-TANK_SIZE.x / 2, TANK_SIZE.x / 2]) {
+    for (const cz of [-TANK_SIZE.z / 2, TANK_SIZE.z / 2]) {
+      const post = makeBoxMesh(0.14, TANK_SIZE.y, 0.14, 0x1c2733);
+      post.position.set(cx, TANK_SIZE.y / 2, cz);
+      tankGroup.add(post);
+    }
+  }
+  const topRim = makeBoxMesh(TANK_SIZE.x + 0.2, 0.2, TANK_SIZE.z + 0.2, 0x1c2733);
+  topRim.position.set(0, TANK_SIZE.y, 0);
+  tankGroup.add(topRim);
+
+  // 水草
+  const tankWeeds = [];
+  for (let i = -5; i <= 5; i += 2.5) {
+    const weed = new THREE.Mesh(new THREE.ConeGeometry(0.18, 1.6, 5), new THREE.MeshStandardMaterial({ color: 0x2f9e52, flatShading: true }));
+    weed.position.set(i, 0.6, -TANK_SIZE.z / 2 + 0.6);
+    weed.userData.baseRot = weed.rotation.z;
+    weed.userData.sway = Math.random() * Math.PI * 2;
+    tankGroup.add(weed);
+    tankWeeds.push(weed);
+  }
+
+  const tankFishMeshes = [];
+  const MAX_TANK_FISH = 16;
+
+  function refreshTankFish() {
+    tankFishMeshes.forEach((f) => tankGroup.remove(f.mesh));
+    tankFishMeshes.length = 0;
+    const recent = state.catches.slice(-MAX_TANK_FISH);
+    recent.forEach((c) => {
+      const sp = speciesById(c.speciesId);
+      if (!sp) return;
+      const mesh = createFishMesh(sp);
+      const scaleFactor = 0.55 + clamp((c.size - sp.size[0]) / Math.max(1, sp.size[1] - sp.size[0]), 0, 1) * 0.5;
+      mesh.scale.setScalar(scaleFactor);
+      const px = rand(-TANK_SIZE.x / 2 + 1.2, TANK_SIZE.x / 2 - 1.2);
+      const py = rand(0.8, TANK_SIZE.y - 1.2);
+      const pz = rand(-TANK_SIZE.z / 2 + 1, TANK_SIZE.z / 2 - 1);
+      mesh.position.set(px, py, pz);
+      tankGroup.add(mesh);
+      tankFishMeshes.push({
+        mesh,
+        vx: rand(-1, 1) || 0.4,
+        vz: rand(-1, 1) || 0.4,
+        wiggle: Math.random() * Math.PI * 2,
+        swimTimer: rand(1, 3),
+        speed: rand(0.7, 1.3),
+      });
+    });
+  }
+
+  function updateTankFish(dt, t) {
+    tankWeeds.forEach((w) => { w.rotation.z = w.userData.baseRot + Math.sin(t * 1.2 + w.userData.sway) * 0.15; });
+
+    tankFishMeshes.forEach((f) => {
+      f.swimTimer -= dt;
+      if (f.swimTimer <= 0) {
+        f.swimTimer = rand(1.5, 3.5);
+        f.vx = rand(-1, 1);
+        f.vz = rand(-1, 1);
+      }
+      const speed = f.speed * 1.1;
+      f.mesh.position.x += f.vx * speed * dt;
+      f.mesh.position.z += f.vz * speed * dt;
+      f.mesh.position.y += Math.sin(t * 0.6 + f.wiggle) * 0.15 * dt * 6;
+
+      const halfX = TANK_SIZE.x / 2 - 1.2, halfZ = TANK_SIZE.z / 2 - 1;
+      if (f.mesh.position.x < -halfX) { f.mesh.position.x = -halfX; f.vx = Math.abs(f.vx); }
+      if (f.mesh.position.x > halfX) { f.mesh.position.x = halfX; f.vx = -Math.abs(f.vx); }
+      if (f.mesh.position.z < -halfZ) { f.mesh.position.z = -halfZ; f.vz = Math.abs(f.vz); }
+      if (f.mesh.position.z > halfZ) { f.mesh.position.z = halfZ; f.vz = -Math.abs(f.vz); }
+      f.mesh.position.y = clamp(f.mesh.position.y, 0.6, TANK_SIZE.y - 1);
+
+      const angle = Math.atan2(f.vx, f.vz);
+      f.mesh.rotation.y = angle;
+      f.wiggle += dt * 5;
+
+      if (f.mesh.userData.rainbow) {
+        const hue = (t * 0.15) % 1;
+        f.mesh.userData.bodyMat.emissive.setHSL(hue, 0.8, 0.55);
+        f.mesh.userData.bodyMat.emissiveIntensity = 0.5 + Math.sin(t * 3) * 0.2;
+      } else if (f.mesh.userData.rarity && RARITY[f.mesh.userData.rarity].glow) {
+        f.mesh.userData.bodyMat.emissiveIntensity = 0.3 + Math.sin(t * 2.4 + f.wiggle) * 0.15;
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // ゲームステート (釣り)
+  // ---------------------------------------------------------------
+
+  const FSM = { IDLE: "idle", CASTING: "casting", WAITING: "waiting", BITE: "bite", REELING: "reeling" };
+  let fsm = FSM.IDLE;
+  let castTarget = new THREE.Vector3();
+  let castStart = new THREE.Vector3();
+  let castT = 0;
+  let waitTimer = 0;
+  let biteWillOccur = true;
+  let hookTimer = 0;
+  let hookWindowTotal = 1.3;
+  let pendingCatch = null;
+  let reelMeter = 0;
+  let reelTimeLeft = 0;
+  let reelTimeTotal = 6;
+  let reelPullTimer = 0;
+  let currentTab = "dock";
+
+  function setFsm(next) { fsm = next; }
+
+  function startCast() {
+    if (fsm !== FSM.IDLE) return;
+    state.totalCasts++;
+    save();
+    setFsm(FSM.CASTING);
+    castStart.copy(rodTipWorld);
+    const cx = rand(-4, 4);
+    const cz = rand(-10, -17);
+    castTarget.set(cx, 0, cz);
+    castT = 0;
+    bobber.visible = true;
+    castBtn.disabled = true;
+    log("えいっ!");
+  }
+
+  function afterCastSettled() {
+    setFsm(FSM.WAITING);
+    waitTimer = rand(2.2, 5.5);
+    biteWillOccur = Math.random() > 0.1;
+    log("魚のあたりを待とう…");
+  }
+
+  function triggerBite() {
+    setFsm(FSM.BITE);
+    const rarity = rollRarity();
+    hookWindowTotal = RARITY[rarity].hookWindow;
+    hookTimer = hookWindowTotal;
+    pendingCatch = { plannedRarity: rarity };
+    hookBtn.hidden = false;
+    log("❗ なにかかかった!");
+    toast("あわせろ!");
+  }
+
+  function doHook() {
+    if (fsm !== FSM.BITE) return;
+    const rarityDef = RARITY[pendingCatch.plannedRarity];
+    reelMeter = 8;
+    reelTimeTotal = rarityDef.reelTime;
+    reelTimeLeft = reelTimeTotal;
+    reelPullTimer = rand(rarityDef.tugInterval[0], rarityDef.tugInterval[1]);
+    setFsm(FSM.REELING);
+    hookBtn.hidden = true;
+    reelWrap.hidden = false;
+    log("巻け巻け!");
+  }
+
+  function missHook() {
+    setFsm(FSM.IDLE);
+    hookBtn.hidden = true;
+    resetBobber();
+    log("うわ、にげられた…");
+    toast("にげられた…");
+    castBtn.disabled = false;
+  }
+
+  function resetBobber() {
+    bobber.visible = false;
+    pendingCatch = null;
+  }
+
+  function finishReelSuccess() {
+    const pool = speciesByRarity(pendingCatch.plannedRarity);
+    const sp = pool[randInt(0, pool.length - 1)];
+    const size = rand(sp.size[0], sp.size[1]);
+    const weight = rand(sp.weight[0], sp.weight[1]);
+    const wasFirst = !state.catches.some((c) => c.speciesId === sp.id);
+    const catchData = { speciesId: sp.id, rarity: sp.rarity, size, weight, caughtAt: Date.now() };
+    const isRecord = recordCatch(catchData);
+    refreshTankFish();
+    updateStatsUI();
+    showCatchCard(sp, catchData, wasFirst, isRecord);
+    setFsm(FSM.IDLE);
+    reelWrap.hidden = true;
+    resetBobber();
+    castBtn.disabled = false;
+    log(`${sp.name} をゲットした!`);
+  }
+
+  function finishReelFail() {
+    setFsm(FSM.IDLE);
+    reelWrap.hidden = true;
+    resetBobber();
+    castBtn.disabled = false;
+    log("糸が切れた…にげられてしまった");
+    toast("にげられた…");
+  }
+
+  // ---------------------------------------------------------------
+  // 釣果カード
+  // ---------------------------------------------------------------
+
+  function showCatchCard(sp, catchData, wasFirst, isRecord) {
+    const rarityDef = RARITY[sp.rarity];
+    catchCardInner.innerHTML = `
+      <div class="catch-rarity" style="--rc:${rarityDef.color}">${rarityDef.label}</div>
+      ${wasFirst ? '<div class="catch-new">NEW!</div>' : ""}
+      <div class="catch-fish-name">${sp.name}</div>
+      <div class="catch-fish-stats">
+        <span>${catchData.size.toFixed(1)} cm</span>
+        <span>${catchData.weight.toFixed(2)} kg</span>
+      </div>
+      ${isRecord ? '<div class="catch-record">🏅 自己ベスト更新!</div>' : ""}
+    `;
+    catchCard.hidden = false;
+    catchCard.classList.add("show");
+  }
+
+  catchCloseBtn.addEventListener("click", () => {
+    catchCard.classList.remove("show");
+    setTimeout(() => { catchCard.hidden = true; }, 200);
+  });
+
+  // ---------------------------------------------------------------
+  // UI イベント
+  // ---------------------------------------------------------------
+
+  castBtn.addEventListener("click", startCast);
+  hookBtn.addEventListener("click", doHook);
+
+  let reelHeld = false;
+  reelBtn.addEventListener("pointerdown", () => { reelHeld = true; });
+  window.addEventListener("pointerup", () => { reelHeld = false; });
+
+  feedBtn.addEventListener("click", () => {
+    const now = Date.now();
+    if (now - state.lastFeedAt < 8000) { toast("すこし休ませてあげよう"); return; }
+    state.lastFeedAt = now;
+    save();
+    toast("エサをまいた!みんな嬉しそう");
+    log("水そうの魚たちにエサをあげました。");
+    spawnFeedPellets();
+  });
+
+  const feedPellets = [];
+  function spawnFeedPellets() {
+    for (let i = 0; i < 6; i++) {
+      const pellet = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), new THREE.MeshStandardMaterial({ color: 0x7a4b21 }));
+      pellet.position.set(TANK_ORIGIN.x + rand(-4, 4), TANK_ORIGIN.y + TANK_SIZE.y - 0.5, TANK_ORIGIN.z + rand(-2, 2));
+      pellet.userData.vy = -0.6;
+      pellet.userData.life = 3;
+      scene.add(pellet);
+      feedPellets.push(pellet);
+    }
+  }
+  function updateFeedPellets(dt) {
+    for (let i = feedPellets.length - 1; i >= 0; i--) {
+      const p = feedPellets[i];
+      p.position.y += p.userData.vy * dt;
+      p.userData.life -= dt;
+      if (p.userData.life <= 0) {
+        scene.remove(p);
+        feedPellets.splice(i, 1);
+      }
+    }
+  }
+
+  tabDockBtn.addEventListener("click", () => switchTab("dock"));
+  tabTankBtn.addEventListener("click", () => switchTab("tank"));
+
+  function switchTab(tab) {
+    currentTab = tab;
+    camTarget = tab === "dock" ? CAM_DOCK : CAM_TANK;
+    tabDockBtn.classList.toggle("active", tab === "dock");
+    tabTankBtn.classList.toggle("active", tab === "tank");
+    document.getElementById("dock-hud").hidden = tab !== "dock";
+    document.getElementById("tank-hud").hidden = tab !== "tank";
+  }
+
+  dexBtn.addEventListener("click", () => { renderDex(); dexPanel.classList.add("open"); });
+  dexClose.addEventListener("click", () => dexPanel.classList.remove("open"));
+
+  function renderDex() {
+    dexList.innerHTML = "";
+    let discovered = 0;
+    SPECIES.forEach((sp) => {
+      const caught = state.catches.filter((c) => c.speciesId === sp.id);
+      const has = caught.length > 0;
+      if (has) discovered++;
+      const best = state.bestSize[sp.id];
+      const rarityDef = RARITY[sp.rarity];
+      const row = document.createElement("div");
+      row.className = "dex-item" + (has ? "" : " locked");
+      row.innerHTML = `
+        <div class="dex-swatch" style="background:${has ? sp.color : "#33475c"}"></div>
+        <div class="dex-info">
+          <div class="dex-name">${has ? sp.name : "？？？"}</div>
+          <div class="dex-meta">
+            <span class="dex-rarity" style="--rc:${rarityDef.color}">${rarityDef.label}</span>
+            ${has ? `<span>捕獲 ${caught.length}回・最大 ${best.toFixed(1)}cm</span>` : "<span>未発見</span>"}
+          </div>
+        </div>
+      `;
+      dexList.appendChild(row);
+    });
+    dexProgress.textContent = `${discovered} / ${SPECIES.length} しゅるい発見`;
+  }
+
+  function updateStatsUI() {
+    statCatches.textContent = state.totalCatches;
+    const speciesCount = new Set(state.catches.map((c) => c.speciesId)).size;
+    statSpecies.textContent = `${speciesCount}/${SPECIES.length}`;
+    let bestLabel = "-";
+    let bestVal = 0;
+    Object.entries(state.bestSize).forEach(([id, v]) => {
+      if (v > bestVal) { bestVal = v; bestLabel = speciesById(id) ? speciesById(id).name : id; }
+    });
+    statBest.textContent = bestVal > 0 ? `${bestLabel} ${bestVal.toFixed(1)}cm` : "-";
+  }
+
+  // ---------------------------------------------------------------
+  // リサイズ
+  // ---------------------------------------------------------------
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    renderer.setSize(w, h, false);
+    const aspect = w / h;
+    camera.aspect = aspect;
+    const hfovRad = THREE.MathUtils.degToRad(BASE_HFOV_DEG);
+    const vfovRad = 2 * Math.atan(Math.tan(hfovRad / 2) / aspect);
+    camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(vfovRad), 45, 100);
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize);
+
+  // ---------------------------------------------------------------
+  // メインループ
+  // ---------------------------------------------------------------
+
+  let last = performance.now();
+
+  function updateRod() {
+    rodTipLocal.set(0, 2.75, 0);
+    rodPole.updateMatrixWorld(true);
+    rodTipWorld.copy(rodTipLocal).applyMatrix4(rodPole.matrixWorld);
+  }
+
+  function updateFishingLine() {
+    updateRod();
+    const arr = fishingLine.geometry.attributes.position.array;
+    if (bobber.visible) {
+      arr[0] = rodTipWorld.x; arr[1] = rodTipWorld.y; arr[2] = rodTipWorld.z;
+      arr[3] = bobber.position.x; arr[4] = bobber.position.y; arr[5] = bobber.position.z;
+      fishingLine.visible = true;
+    } else {
+      fishingLine.visible = false;
+    }
+    fishingLine.geometry.attributes.position.needsUpdate = true;
+  }
+
+  function updateFishingState(dt, t) {
+    if (fsm === FSM.CASTING) {
+      castT += dt / 0.55;
+      const tt = Math.min(1, castT);
+      const arcHeight = 3.5 * Math.sin(Math.PI * tt);
+      bobber.position.lerpVectors(castStart, castTarget, tt);
+      bobber.position.y += arcHeight;
+      if (tt >= 1) {
+        bobber.position.copy(castTarget);
+        afterCastSettled();
+      }
+    } else if (fsm === FSM.WAITING) {
+      bobber.position.y = 0.22 + Math.sin(t * 2) * 0.1;
+      waitTimer -= dt;
+      if (waitTimer <= 0) {
+        if (biteWillOccur) triggerBite();
+        else {
+          setFsm(FSM.IDLE);
+          resetBobber();
+          castBtn.disabled = false;
+          log("反応なし…もう一度やってみよう");
+        }
+      }
+    } else if (fsm === FSM.BITE) {
+      bobber.position.y = -0.25 + Math.sin(t * 30) * 0.15;
+      hookTimer -= dt;
+      const pct = clamp(hookTimer / hookWindowTotal, 0, 1);
+      hookRing.style.transform = `scaleX(${pct})`;
+      if (hookTimer <= 0) missHook();
+    } else if (fsm === FSM.REELING) {
+      bobber.position.y = Math.sin(t * 10) * 0.2;
+      const rarityDef = RARITY[pendingCatch.plannedRarity];
+      reelMeter += (reelHeld ? REEL_HOLD_GAIN : -REEL_RELEASE_DRAIN) * dt;
+      reelPullTimer -= dt;
+      if (reelPullTimer <= 0) {
+        reelPullTimer = rand(rarityDef.tugInterval[0], rarityDef.tugInterval[1]);
+        reelMeter -= rand(rarityDef.tug[0], rarityDef.tug[1]);
+        reelBtn.classList.add("shake");
+        setTimeout(() => reelBtn.classList.remove("shake"), 200);
+      }
+      reelMeter = clamp(reelMeter, 0, 100);
+      reelTimeLeft -= dt;
+      reelMeterFill.style.width = reelMeter + "%";
+      reelTimeFill.style.width = clamp((reelTimeLeft / reelTimeTotal) * 100, 0, 100) + "%";
+      if (reelMeter >= 100) finishReelSuccess();
+      else if (reelTimeLeft <= 0) finishReelFail();
+    } else {
+      bobber.position.y = 0;
+    }
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const t = now / 1000;
+
+    waterMat.uniforms.uTime.value = t;
+
+    updateFishingState(dt, t);
+    updateFishingLine();
+    updateTankFish(dt, t);
+    updateFeedPellets(dt);
+
+    camPos.lerp(camTarget.pos, 1 - Math.pow(0.001, dt));
+    camLook.lerp(camTarget.look, 1 - Math.pow(0.001, dt));
+    camera.position.copy(camPos);
+    camera.lookAt(camLook);
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+
+  // ---------------------------------------------------------------
+  // 初期化
+  // ---------------------------------------------------------------
+
+  load();
+  resize();
+  refreshTankFish();
+  updateStatsUI();
+  switchTab("dock");
+  requestAnimationFrame(frame);
+  setInterval(save, 5000);
+  window.addEventListener("beforeunload", save);
+})();
+}
+</script>
+
+</body>
+</html>
