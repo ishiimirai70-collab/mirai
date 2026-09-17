@@ -19,7 +19,7 @@
 このディレクトリを任意の静的ファイルサーバーで配信するだけです。例:
 
 ```
-cd site
+cd docs
 python3 -m http.server 8080
 ```
 
@@ -27,7 +27,13 @@ python3 -m http.server 8080
 
 ## GitHub Pages で公開する場合
 
-リポジトリの Settings → Pages で、公開元をこの `site/` ディレクトリ (またはこの内容をルートに配置したブランチ)に設定してください。公開後はスマホのブラウザからそのURLを開くだけで使えます。
+1. GitHubでこのリポジトリの **Settings → Pages** を開く
+2. "Build and deployment" の Source を **Deploy from a branch** にする
+3. Branch を、このアプリが入っているブランチ (例: `claude/clever-pasteur-n719p9`、または `main` にマージ済みならそちら) にし、フォルダを **/docs** に設定して Save
+
+数十秒〜数分で `https://<ユーザー名>.github.io/<リポジトリ名>/` が使えるようになります。公開後はスマホのブラウザでそのURLを開くだけで使えます(ホーム画面に追加すればアプリのように使えます)。
+
+※ ダウンロード・共有(Web Share)・フォルダ同期(File System Access API)はいずれも実際のブラウザでの表示が前提の機能なので、Claudeのアーティファクト(埋め込みプレビュー)ではなく、必ずこのGitHub Pages形式の通常のWebページとして開いてください。
 
 ## 注意事項
 
