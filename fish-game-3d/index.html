@@ -8,176 +8,202 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
 <style>
-  :root {
-    --sea-deep: #062338;
-    --gold: #ffcb47;
-    --gold-dark: #e0a723;
-    --foam: #eaf6ff;
-    --foam-dim: #b7d4e6;
-    --danger: #e0554f;
-    --font-display: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
-    --font-body: "Zen Maru Gothic", "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; height: 100%; background: var(--sea-deep); color: var(--foam); font-family: var(--font-body); overflow: hidden; }
-  html { height: 100%; }
+:root {
+  --sea-deep: #062338;
+  --panel: #0f4c75dd;
+  --gold: #ffcb47;
+  --gold-dark: #e0a723;
+  --foam: #eaf6ff;
+  --foam-dim: #b7d4e6;
+  --danger: #e0554f;
+  --font-display: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  --font-body: "Zen Maru Gothic", "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--sea-deep); color: var(--foam); font-family: var(--font-body); overflow: hidden; }
 
-  #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+#app { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
-  #top-nav {
-    position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
-    z-index: 20; display: flex; gap: 8px; background: rgba(6,25,40,0.55);
-    padding: 6px; border-radius: 999px; backdrop-filter: blur(6px);
-  }
-  .nav-btn {
-    border: none; background: transparent; color: var(--foam-dim);
-    font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
-    padding: 7px 16px; border-radius: 999px; cursor: pointer;
-  }
-  .nav-btn.active { background: var(--gold); color: #3a2600; }
+#top-nav {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; gap: 8px; background: rgba(6,25,40,0.55);
+  padding: 6px; border-radius: 999px; backdrop-filter: blur(6px);
+}
+.nav-btn {
+  border: none; background: transparent; color: var(--foam-dim);
+  font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+  padding: 7px 16px; border-radius: 999px; cursor: pointer;
+}
+.nav-btn.active { background: var(--gold); color: #3a2600; }
 
-  #dex-btn {
-    position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 20;
-    border: none; background: rgba(6,25,40,0.55); color: var(--foam);
-    font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
-    padding: 9px 14px; border-radius: 999px; cursor: pointer; backdrop-filter: blur(6px);
-  }
+#dex-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 20;
+  border: none; background: rgba(6,25,40,0.55); color: var(--foam);
+  font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+  padding: 9px 14px; border-radius: 999px; cursor: pointer; backdrop-filter: blur(6px);
+}
 
-  #canvas-wrap { position: absolute; inset: 0; }
-  #scene { display: block; width: 100%; height: 100%; }
+#canvas-wrap { position: absolute; inset: 0; }
+#scene { display: block; width: 100%; height: 100%; }
 
-  #hud-bottom {
-    position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;
-    padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    background: linear-gradient(180deg, transparent, rgba(3,15,25,0.65) 40%);
-    pointer-events: none;
-  }
-  #hud-bottom > * { pointer-events: auto; }
+#hud-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: linear-gradient(180deg, transparent, rgba(3,15,25,0.65) 40%);
+  pointer-events: none;
+}
+#hud-bottom > * { pointer-events: auto; }
 
-  #log-bar {
-    background: rgba(6,25,40,0.6); border-radius: 999px; padding: 6px 16px;
-    font-size: 0.82rem; max-width: 90%; text-align: center;
-  }
+#log-bar {
+  background: rgba(6,25,40,0.6); border-radius: 999px; padding: 6px 16px;
+  font-size: 0.82rem; max-width: 90%; text-align: center;
+}
 
-  .big-btn {
-    background: var(--gold); color: #3a2600; border: none; border-radius: 999px;
-    font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
-    padding: 14px 32px; cursor: pointer; box-shadow: 0 5px 0 var(--gold-dark);
-    transition: transform 0.08s ease;
-  }
-  .big-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--gold-dark); }
-  .big-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .big-btn:focus-visible { outline: 3px solid var(--foam); outline-offset: 2px; }
+.big-btn {
+  background: var(--gold); color: #3a2600; border: none; border-radius: 999px;
+  font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
+  padding: 14px 32px; cursor: pointer; box-shadow: 0 5px 0 var(--gold-dark);
+  transition: transform 0.08s ease;
+}
+.big-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--gold-dark); }
+.big-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.big-btn.danger { background: var(--danger); color: #fff; box-shadow: 0 5px 0 #a3312d; }
 
-  #hook-btn { position: relative; overflow: hidden; }
-  #hook-ring {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 100%;
-    background: rgba(255,255,255,0.35); transform-origin: left center;
-    pointer-events: none;
-  }
-  #hook-btn span { position: relative; z-index: 1; }
+#hook-btn {
+  position: relative; overflow: hidden;
+}
+#hook-ring {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 100%;
+  background: rgba(255,255,255,0.35); transform-origin: left center;
+  pointer-events: none;
+}
+#hook-btn span { position: relative; z-index: 1; }
 
-  #reel-wrap { width: min(420px, 90vw); display: flex; flex-direction: column; gap: 8px; align-items: center; }
-  .reel-meters { width: 100%; display: flex; flex-direction: column; gap: 6px; }
-  .reel-track { width: 100%; height: 12px; background: rgba(0,0,0,0.4); border-radius: 999px; overflow: hidden; }
-  .reel-track.time .reel-fill { background: var(--danger); }
-  .reel-fill { height: 100%; width: 0%; background: #4fd67c; transition: width 0.08s linear; }
+#reel-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+#reel-game { display: flex; gap: 10px; align-items: stretch; background: rgba(6,25,40,0.55); border-radius: 14px; padding: 10px; backdrop-filter: blur(4px); }
+#reel-column {
+  position: relative; width: 64px; height: 190px; border-radius: 10px;
+  background: linear-gradient(180deg, #0d3f5c, #06263a);
+  border: 2px solid rgba(255,255,255,0.15); overflow: hidden;
+}
+#reel-zone {
+  position: absolute; left: 0; right: 0; bottom: 40%; height: 36%;
+  background: rgba(79,214,124,0.45); border-top: 2px solid #7dffab; border-bottom: 2px solid #7dffab;
+}
+#reel-fish {
+  position: absolute; left: 50%; bottom: 50%; font-size: 1.4rem;
+  transform: translate(-50%, 50%); filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
+}
+#reel-progress-track {
+  width: 16px; height: 190px; border-radius: 999px; background: rgba(0,0,0,0.4);
+  overflow: hidden; display: flex; align-items: flex-end;
+}
+#reel-progress-fill { width: 100%; height: 0%; background: linear-gradient(180deg, #ffe27a, var(--gold)); }
 
-  #reel-btn.shake { animation: shakeAnim 0.2s ease; }
-  @keyframes shakeAnim {
-    0%,100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    75% { transform: translateX(6px); }
-  }
+#reel-btn.shake { animation: shakeAnim 0.2s ease; }
+@keyframes shakeAnim {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
 
-  .stat-row { display: flex; gap: 8px; position: absolute; top: calc(60px + env(safe-area-inset-top, 0px)); left: 10px; z-index: 15; flex-wrap: wrap; }
-  .stat-pill {
-    background: rgba(6,25,40,0.55); border-radius: 999px; padding: 6px 12px;
-    font-size: 0.78rem; font-family: var(--font-display); font-variant-numeric: tabular-nums;
-  }
+.stat-row { display: flex; gap: 8px; position: absolute; top: 60px; left: 10px; z-index: 15; flex-wrap: wrap; }
+.stat-pill {
+  background: rgba(6,25,40,0.55); border-radius: 999px; padding: 6px 12px;
+  font-size: 0.78rem; font-family: var(--font-display);
+}
 
-  #toast-area {
-    position: absolute; top: calc(100px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 25;
-    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
-  }
-  .toast {
-    background: rgba(6,25,40,0.75); border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px; padding: 6px 12px; font-size: 0.82rem;
-    animation: fadeUp 2.5s ease forwards;
-  }
-  @keyframes fadeUp {
-    0% { opacity: 0; transform: translateY(6px); }
-    10% { opacity: 1; transform: translateY(0); }
-    80% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-8px); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .toast { animation: none; opacity: 1; }
-  }
+#toast-area {
+  position: absolute; top: 100px; right: 10px; z-index: 25;
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+}
+.toast {
+  background: rgba(6,25,40,0.75); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px; padding: 6px 12px; font-size: 0.82rem;
+  animation: fadeUp 2.5s ease forwards;
+}
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(6px); }
+  10% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
 
-  #catch-card {
-    position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
-    background: rgba(3,10,18,0.6); opacity: 0; transition: opacity 0.2s ease;
-  }
-  #catch-card.show { opacity: 1; }
-  #catch-card[hidden] { display: none; }
+#catch-card {
+  position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  background: rgba(3,10,18,0.6); opacity: 0; transition: opacity 0.2s ease;
+}
+#catch-card.show { opacity: 1; }
+#catch-card[hidden] { display: none; }
 
-  .catch-card-inner {
-    background: linear-gradient(160deg, #123a52, #0a2233);
-    border: 2px solid var(--rc, var(--gold));
-    border-radius: 20px; padding: 26px 30px; text-align: center;
-    width: min(320px, 84vw);
-    box-shadow: 0 0 40px var(--rc, var(--gold));
-    transform: scale(0.85); transition: transform 0.25s ease;
-  }
-  #catch-card.show .catch-card-inner { transform: scale(1); }
+.catch-card-inner {
+  background: linear-gradient(160deg, #123a52, #0a2233);
+  border: 2px solid var(--rc, var(--gold));
+  border-radius: 20px; padding: 26px 30px; text-align: center;
+  width: min(320px, 84vw);
+  box-shadow: 0 0 40px var(--rc, var(--gold));
+  transform: scale(0.85); transition: transform 0.25s ease;
+}
+#catch-card.show .catch-card-inner { transform: scale(1); }
 
-  .catch-rarity {
-    display: inline-block; font-family: var(--font-display); font-weight: 800;
-    color: var(--rc); border: 2px solid var(--rc); border-radius: 999px;
-    padding: 4px 16px; font-size: 0.85rem; margin-bottom: 10px;
-  }
-  .catch-new {
-    display: inline-block; background: var(--gold); color: #3a2600; font-weight: 800;
-    border-radius: 999px; padding: 2px 12px; font-size: 0.75rem; margin-left: 6px;
-  }
-  .catch-fish-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin: 10px 0 6px; }
-  .catch-fish-stats { display: flex; gap: 16px; justify-content: center; font-variant-numeric: tabular-nums; color: var(--foam-dim); margin-bottom: 8px; }
-  .catch-record { color: var(--gold); font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; }
-  .catch-card-inner #catch-close-btn { margin-top: 8px; padding: 10px 26px; font-size: 0.9rem; }
+.catch-rarity {
+  display: inline-block; font-family: var(--font-display); font-weight: 800;
+  color: var(--rc); border: 2px solid var(--rc); border-radius: 999px;
+  padding: 4px 16px; font-size: 0.85rem; margin-bottom: 10px;
+}
+.catch-new {
+  display: inline-block; background: var(--gold); color: #3a2600; font-weight: 800;
+  border-radius: 999px; padding: 2px 12px; font-size: 0.75rem; margin-left: 6px;
+}
+.catch-fish-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin: 10px 0 6px; }
+.catch-fish-stats { display: flex; gap: 16px; justify-content: center; font-variant-numeric: tabular-nums; color: var(--foam-dim); margin-bottom: 8px; }
+.catch-record { color: var(--gold); font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; }
+.catch-card-inner #catch-close-btn { margin-top: 8px; padding: 10px 26px; font-size: 0.9rem; }
 
-  #dex-panel {
-    position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 92vw);
-    background: #0f2f45; z-index: 30; transform: translateX(100%);
-    transition: transform 0.25s ease; display: flex; flex-direction: column;
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(14px + env(safe-area-inset-bottom, 0px));
-    box-shadow: -8px 0 30px rgba(0,0,0,0.4);
-  }
-  #dex-panel.open { transform: translateX(0); }
-  .dex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .dex-header h2 { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
-  #dex-close { background: none; border: none; color: var(--foam); font-size: 1.4rem; cursor: pointer; }
-  #dex-progress { font-size: 0.8rem; color: var(--foam-dim); margin-bottom: 10px; }
-  #dex-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .dex-item { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px; }
-  .dex-item.locked { opacity: 0.55; }
-  .dex-swatch { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
-  .dex-name { font-family: var(--font-display); font-weight: 700; font-size: 0.88rem; }
-  .dex-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.72rem; color: var(--foam-dim); margin-top: 2px; }
-  .dex-rarity { color: var(--rc); font-weight: 700; }
+#dex-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 92vw);
+  background: #0f2f45; z-index: 30; transform: translateX(100%);
+  transition: transform 0.25s ease; display: flex; flex-direction: column;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
+  box-shadow: -8px 0 30px rgba(0,0,0,0.4);
+}
+#dex-panel.open { transform: translateX(0); }
+.dex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.dex-header h2 { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
+#dex-close { background: none; border: none; color: var(--foam); font-size: 1.4rem; cursor: pointer; }
+#dex-panel .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+#dex-panel .tab-btn {
+  border: 1px solid rgba(255,255,255,0.22); background: transparent; color: var(--foam-dim);
+  font-family: var(--font-display); font-weight: 700; font-size: 0.8rem;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+}
+#dex-panel .tab-btn.active { background: var(--gold); color: #3a2600; border-color: var(--gold); }
+.panel-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+#dex-progress, #dex-progress-rod { font-size: 0.8rem; color: var(--foam-dim); margin-bottom: 6px; }
+#stat-summary { font-size: 0.75rem; color: var(--foam-dim); margin-bottom: 10px; }
+#dex-list, #rod-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.dex-item, .rod-item { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px; }
+.dex-item.locked { opacity: 0.55; }
+.dex-swatch, .rod-swatch { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.dex-name, .rod-name { font-family: var(--font-display); font-weight: 700; font-size: 0.88rem; }
+.dex-meta, .rod-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.72rem; color: var(--foam-dim); margin-top: 2px; }
+.dex-rarity { color: var(--rc); font-weight: 700; }
+.rod-item.current { border: 1px solid var(--gold); }
+.rod-buy-btn {
+  background: var(--good, #4fd67c); border: none; color: #073016; font-weight: 700;
+  font-family: var(--font-display); padding: 7px 12px; border-radius: 8px; font-size: 0.78rem;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.rod-buy-btn:disabled { background: #5c7a70; color: #cdd; cursor: not-allowed; }
 
-  #boot-error {
-    position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
-    padding: 24px; text-align: center; background: var(--sea-deep);
-  }
+[hidden] { display: none !important; }
 
-  [hidden] { display: none !important; }
+@media (max-width: 480px) {
+  .stat-row { top: 56px; }
+  .catch-fish-name { font-size: 1.35rem; }
+}
 
-  @media (max-width: 480px) {
-    .stat-row { top: calc(56px + env(safe-area-inset-top, 0px)); }
-    .catch-fish-name { font-size: 1.35rem; }
-  }
 </style>
 </head>
 <body>
@@ -188,12 +214,12 @@
     <button class="nav-btn active" id="tab-dock">🎣 つり場</button>
     <button class="nav-btn" id="tab-tank">🐠 すいぞくかん</button>
   </div>
-  <button id="dex-btn">📖 図鑑</button>
+  <button id="dex-btn">📖 図鑑・竿</button>
 
   <div class="stat-row">
-    <div class="stat-pill">🐟 <span id="stat-catches">0</span>匹</div>
+    <div class="stat-pill">🪙 <span id="stat-coins">0</span></div>
+    <div class="stat-pill">🎣 <span id="stat-rod">-</span></div>
     <div class="stat-pill">📘 <span id="stat-species">0/0</span></div>
-    <div class="stat-pill">🏅 <span id="stat-best">-</span></div>
   </div>
 
   <div id="canvas-wrap">
@@ -203,17 +229,20 @@
   <div id="toast-area"></div>
 
   <div id="hud-bottom">
-    <div id="log-bar"><span id="log-text">ようこそ、つり場へ!</span></div>
+    <div id="log-bar"><span id="log-text">「なげる」を長押しすると遠くまで飛ばせるよ!</span></div>
 
     <div id="dock-hud">
       <button id="cast-btn" class="big-btn">🎣 なげる</button>
       <button id="hook-btn" class="big-btn" hidden><div id="hook-ring"></div><span>❗ あわせる!</span></button>
       <div id="reel-wrap" hidden>
-        <div class="reel-meters">
-          <div class="reel-track"><div class="reel-fill" id="reel-meter-fill"></div></div>
-          <div class="reel-track time"><div class="reel-fill" id="reel-time-fill"></div></div>
+        <div id="reel-game">
+          <div id="reel-column">
+            <div id="reel-zone"></div>
+            <div id="reel-fish">🐟</div>
+          </div>
+          <div id="reel-progress-track"><div id="reel-progress-fill"></div></div>
         </div>
-        <button id="reel-btn" class="big-btn">🎣 まきとる!(おす)</button>
+        <button id="reel-btn" class="big-btn">🎣 おさえて引き上げる!</button>
       </div>
     </div>
 
@@ -231,20 +260,32 @@
 
   <div id="dex-panel">
     <div class="dex-header">
-      <h2>📖 さかな図鑑</h2>
+      <h2 id="panel-title">📖 さかな図鑑</h2>
       <button id="dex-close">✕</button>
     </div>
-    <div id="dex-progress"></div>
-    <div id="dex-list"></div>
+    <div class="tabs">
+      <button class="tab-btn active" id="panel-tab-dex">📖 図鑑</button>
+      <button class="tab-btn" id="panel-tab-rod">🎣 竿ショップ</button>
+    </div>
+    <div id="panel-dex" class="panel-view">
+      <div id="dex-progress"></div>
+      <div id="stat-summary">🐟 総捕獲数 <span id="stat-catches">0</span>匹 ・ 🏅 最大 <span id="stat-best">-</span></div>
+      <div id="dex-list"></div>
+    </div>
+    <div id="panel-rod" class="panel-view" hidden>
+      <div id="dex-progress-rod">コインを貯めて竿をアップグレードしよう</div>
+      <div id="rod-list"></div>
+    </div>
   </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
 if (typeof THREE === "undefined") {
   document.getElementById("app").innerHTML = '<div id="boot-error"><div><p style="font-family:sans-serif;font-size:1rem;">3D ライブラリの読み込みに失敗しました。<br>通信状態を確認して、ページを再読み込みしてください。</p></div></div>';
 } else {
-/* つりずかん 〜 3D つり × すいぞくかん ゲーム 〜 */
+/* 3D つり × すいぞくかん ゲーム */
 (() => {
   "use strict";
 
@@ -255,33 +296,54 @@ if (typeof THREE === "undefined") {
   // ---------------------------------------------------------------
 
   const RARITY = {
-    common:     { label: "コモン",       weight: 55, color: "#9aa5b1", glow: false, reelTime: 5.0, tug: [4, 7],   tugInterval: [1.4, 2.2], hookWindow: 1.5 },
-    rare:       { label: "レア",         weight: 25, color: "#4fa3ff", glow: false, reelTime: 6.0, tug: [5, 9],   tugInterval: [1.2, 2.0], hookWindow: 1.3 },
-    superrare:  { label: "スーパーレア", weight: 13, color: "#b06bff", glow: true,  reelTime: 7.0, tug: [6, 11],  tugInterval: [1.0, 1.8], hookWindow: 1.15 },
-    ultra:      { label: "激レア",       weight: 6,  color: "#ffb703", glow: true,  reelTime: 8.0, tug: [8, 13],  tugInterval: [0.9, 1.6], hookWindow: 1.0 },
-    legendary:  { label: "伝説",         weight: 1,  color: "#ff6b9d", glow: true,  reelTime: 9.0, tug: [10, 16], tugInterval: [0.8, 1.4], hookWindow: 0.85, rainbow: true },
+    common:     { label: "コモン",       weight: 55, color: "#9aa5b1", glow: false, hookWindow: 1.5,  zoneHeight: 42, fishChange: [1.0, 1.8],  fishJitter: 5 },
+    rare:       { label: "レア",         weight: 25, color: "#4fa3ff", glow: false, hookWindow: 1.3,  zoneHeight: 36, fishChange: [0.85, 1.5], fishJitter: 7 },
+    superrare:  { label: "スーパーレア", weight: 13, color: "#b06bff", glow: true,  hookWindow: 1.15, zoneHeight: 31, fishChange: [0.7, 1.25], fishJitter: 9 },
+    ultra:      { label: "激レア",       weight: 6,  color: "#ffb703", glow: true,  hookWindow: 1.0,  zoneHeight: 26, fishChange: [0.6, 1.05], fishJitter: 11 },
+    legendary:  { label: "伝説",         weight: 1,  color: "#ff6b9d", glow: true,  hookWindow: 0.85, zoneHeight: 22, fishChange: [0.5, 0.9],  fishJitter: 13, rainbow: true },
   };
-  const REEL_HOLD_GAIN = 26;    // メーターの上昇速度 (%/秒, ボタンを押している間)
-  const REEL_RELEASE_DRAIN = 20; // メーターの下降速度 (%/秒, 離している間)
+  // リール(引き上げ)ミニゲームの共通パラメータ
+  const REEL_RISE_ACCEL = 280;   // ボタンを押している間、ゾーンが上昇する加速度 (%/秒^2)
+  const REEL_GRAVITY = 220;      // 離している間、ゾーンが落ちる加速度 (%/秒^2)
+  const REEL_MAX_V = 95;         // ゾーンの最大速度 (%/秒)
+  const REEL_FILL_RATE = 32;     // 魚がゾーン内にいるときの進捗上昇速度 (%/秒)
+  const REEL_DRAIN_RATE = 15;    // 魚がゾーン外にいるときの進捗下降速度 (%/秒)
+  const REEL_MAX_DURATION = 30;  // 安全装置: これ以上は自動で終了
   const RARITY_ORDER = ["common", "rare", "superrare", "ultra", "legendary"];
 
   const SPECIES = [
-    { id: "iwashi",   name: "いわし",         rarity: "common",    color: "#cfd8e3", accent: "#5b7fa6", size: [10, 18],  weight: [0.05, 0.15], shape: "slim" },
-    { id: "aji",      name: "あじ",           rarity: "common",    color: "#8fd1c1", accent: "#3f7f73", size: [15, 25],  weight: [0.1, 0.3],   shape: "slim" },
-    { id: "funa",     name: "ふな",           rarity: "common",    color: "#c99a5b", accent: "#7a5a2e", size: [15, 30],  weight: [0.2, 0.6],   shape: "round" },
-    { id: "madai",    name: "まだい",         rarity: "rare",      color: "#ff8fa3", accent: "#d94f6b", size: [25, 45],  weight: [0.5, 2.0],   shape: "round" },
-    { id: "suzuki",   name: "すずき",         rarity: "rare",      color: "#c9d6de", accent: "#8a9aa5", size: [30, 55],  weight: [0.7, 2.5],   shape: "slim" },
-    { id: "nijimasu", name: "にじます",       rarity: "rare",      color: "#7fb8ff", accent: "#ff7fb0", size: [20, 40],  weight: [0.3, 1.2],   shape: "slim" },
-    { id: "kinmedai", name: "きんめだい",     rarity: "superrare", color: "#ff5d5d", accent: "#ffd166", size: [25, 40],  weight: [0.6, 1.8],   shape: "round" },
-    { id: "anko",     name: "ちょうちんあんこう", rarity: "superrare", color: "#3a2a4d", accent: "#c9a6ff", size: [15, 30],  weight: [0.3, 1.0],   shape: "blob" },
-    { id: "nishikigoi", name: "にしきごい",   rarity: "superrare", color: "#ffffff", accent: "#ff5b5b", size: [30, 60],  weight: [1.0, 4.0],   shape: "round" },
-    { id: "ryugu",    name: "りゅうぐうのつかい", rarity: "ultra",  color: "#d8e8ff", accent: "#8fc7ff", size: [80, 160], weight: [2.0, 8.0],   shape: "ribbon" },
-    { id: "manbo",    name: "まんぼう",       rarity: "ultra",     color: "#a9c9d6", accent: "#6f95a3", size: [60, 120], weight: [5.0, 20.0],  shape: "disc" },
-    { id: "kogane",   name: "こがねのぬし",   rarity: "legendary", color: "#ffd700", accent: "#fff2b0", size: [100, 200], weight: [10.0, 40.0], shape: "round" },
+    { id: "iwashi",   name: "いわし",         rarity: "common",    color: "#8ea3b0", accent: "#e8edf0", size: [10, 18],  weight: [0.05, 0.15], shape: "slim",  pattern: "plain" },
+    { id: "aji",      name: "あじ",           rarity: "common",    color: "#7fae94", accent: "#dce8d8", size: [15, 25],  weight: [0.1, 0.3],   shape: "slim",  pattern: "plain" },
+    { id: "funa",     name: "ふな",           rarity: "common",    color: "#8a7248", accent: "#c7b183", size: [15, 30],  weight: [0.2, 0.6],   shape: "round", pattern: "plain" },
+    { id: "madai",    name: "まだい",         rarity: "rare",      color: "#e8879c", accent: "#7fd6e0", size: [25, 45],  weight: [0.5, 2.0],   shape: "round", pattern: "spots" },
+    { id: "suzuki",   name: "すずき",         rarity: "rare",      color: "#9aa8ad", accent: "#e4eced", size: [30, 55],  weight: [0.7, 2.5],   shape: "slim",  pattern: "stripes" },
+    { id: "nijimasu", name: "にじます",       rarity: "rare",      color: "#5b7d5a", accent: "#ff8fae", size: [20, 40],  weight: [0.3, 1.2],   shape: "slim",  pattern: "stripes" },
+    { id: "kinmedai", name: "きんめだい",     rarity: "superrare", color: "#d3323a", accent: "#ffd166", size: [25, 40],  weight: [0.6, 1.8],   shape: "round", pattern: "plain" },
+    { id: "anko",     name: "ちょうちんあんこう", rarity: "superrare", color: "#2c2233", accent: "#6a5478", size: [15, 30],  weight: [0.3, 1.0],   shape: "blob",  pattern: "spots" },
+    { id: "nishikigoi", name: "にしきごい",   rarity: "superrare", color: "#f5eee0", accent: "#e2522f", size: [30, 60],  weight: [1.0, 4.0],   shape: "round", pattern: "patches" },
+    { id: "ryugu",    name: "りゅうぐうのつかい", rarity: "ultra",  color: "#c3d4de", accent: "#5c7d94", size: [80, 160], weight: [2.0, 8.0],   shape: "ribbon", pattern: "stripes" },
+    { id: "manbo",    name: "まんぼう",       rarity: "ultra",     color: "#93a3a8", accent: "#5c6b70", size: [60, 120], weight: [5.0, 20.0],  shape: "disc",  pattern: "spots" },
+    { id: "kogane",   name: "こがねのぬし",   rarity: "legendary", color: "#f0b23a", accent: "#fff2b0", size: [100, 200], weight: [10.0, 40.0], shape: "round", pattern: "plain" },
   ];
 
   const speciesById = (id) => SPECIES.find((s) => s.id === id);
   const speciesByRarity = (r) => SPECIES.filter((s) => s.rarity === r);
+
+  // ---------------------------------------------------------------
+  // 竿 (ロッド) — レベルが上がるほど釣れる魚のレア度上限が上がる
+  // ---------------------------------------------------------------
+
+  const RODS = [
+    { level: 0, name: "木の竿",       cost: 0,   maxRarity: "common",    zoneBonus: 0, desc: "はじめの竿。コモンの魚が釣れる。" },
+    { level: 1, name: "鉄の竿",       cost: 40,  maxRarity: "rare",      zoneBonus: 0, desc: "レアまでの魚が釣れるようになる。" },
+    { level: 2, name: "銀の竿",       cost: 140, maxRarity: "superrare", zoneBonus: 0, desc: "スーパーレアまで解禁。" },
+    { level: 3, name: "金の竿",       cost: 380, maxRarity: "ultra",     zoneBonus: 0, desc: "激レアまで解禁。" },
+    { level: 4, name: "ミスリルの竿", cost: 900, maxRarity: "legendary", zoneBonus: 0, desc: "伝説級まですべて釣れる。" },
+    { level: 5, name: "星屑の竿",     cost: null, maxRarity: "legendary", zoneBonus: 7, desc: "図鑑を全て埋めると手に入る最強の竿。引き上げゾーンが広がり釣りやすくなる。", rewardOnly: true },
+  ];
+  const COIN_REWARD = { common: 10, rare: 28, superrare: 65, ultra: 160, legendary: 550 };
+  const JUNK_ITEMS = ["空き缶", "古いブーツ", "海そうの塊", "流木", "さびた鉄くず"];
+  const JUNK_CHANCE = 0.1;
 
   // ---------------------------------------------------------------
   // ユーティリティ
@@ -290,16 +352,21 @@ if (typeof THREE === "undefined") {
   const rand = (a, b) => a + Math.random() * (b - a);
   const randInt = (a, b) => Math.floor(rand(a, b + 1));
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
 
-  function rollRarity() {
-    const total = RARITY_ORDER.reduce((s, k) => s + RARITY[k].weight, 0);
+  function rollRarity(maxTier) {
+    const maxIdx = maxTier ? RARITY_ORDER.indexOf(maxTier) : RARITY_ORDER.length - 1;
+    const allowed = RARITY_ORDER.slice(0, maxIdx + 1);
+    const total = allowed.reduce((s, k) => s + RARITY[k].weight, 0);
     let r = Math.random() * total;
-    for (const k of RARITY_ORDER) {
+    for (const k of allowed) {
       r -= RARITY[k].weight;
       if (r <= 0) return k;
     }
-    return "common";
+    return allowed[0];
   }
+
+  function currentRod() { return RODS[state.rodLevel] || RODS[0]; }
 
   // ---------------------------------------------------------------
   // セーブデータ
@@ -311,6 +378,8 @@ if (typeof THREE === "undefined") {
     totalCasts: 0,
     totalCatches: 0,
     lastFeedAt: 0,
+    coins: 0,
+    rodLevel: 0,
   };
 
   function save() {
@@ -333,8 +402,26 @@ if (typeof THREE === "undefined") {
     const best = state.bestSize[catchData.speciesId] || 0;
     const isRecord = catchData.size > best;
     if (isRecord) state.bestSize[catchData.speciesId] = catchData.size;
+    const coinsEarned = Math.round(COIN_REWARD[catchData.rarity] * rand(0.85, 1.25));
+    state.coins += coinsEarned;
     save();
-    return isRecord;
+    return { isRecord, coinsEarned };
+  }
+
+  function discoveredCount() {
+    return new Set(state.catches.map((c) => c.speciesId)).size;
+  }
+
+  function checkRodCompletion() {
+    if (state.rodLevel < 5 && discoveredCount() >= SPECIES.length) {
+      state.rodLevel = 5;
+      save();
+      toast("🏆 図鑑コンプリート!");
+      setTimeout(() => toast("🎣 最強の竿『星屑の竿』を手に入れた!"), 900);
+      log("図鑑をすべて埋めて『星屑の竿』を手に入れた!");
+      return true;
+    }
+    return false;
   }
 
   // ---------------------------------------------------------------
@@ -349,14 +436,22 @@ if (typeof THREE === "undefined") {
   const dexClose = document.getElementById("dex-close");
   const dexList = document.getElementById("dex-list");
   const dexProgress = document.getElementById("dex-progress");
+  const panelTabDex = document.getElementById("panel-tab-dex");
+  const panelTabRod = document.getElementById("panel-tab-rod");
+  const panelDex = document.getElementById("panel-dex");
+  const panelRod = document.getElementById("panel-rod");
+  const rodList = document.getElementById("rod-list");
+  const statCoins = document.getElementById("stat-coins");
+  const statRod = document.getElementById("stat-rod");
 
   const castBtn = document.getElementById("cast-btn");
   const hookBtn = document.getElementById("hook-btn");
   const hookRing = document.getElementById("hook-ring");
   const reelWrap = document.getElementById("reel-wrap");
   const reelBtn = document.getElementById("reel-btn");
-  const reelMeterFill = document.getElementById("reel-meter-fill");
-  const reelTimeFill = document.getElementById("reel-time-fill");
+  const reelZoneEl = document.getElementById("reel-zone");
+  const reelFishEl = document.getElementById("reel-fish");
+  const reelProgressFill = document.getElementById("reel-progress-fill");
   const feedBtn = document.getElementById("feed-btn");
   const logText = document.getElementById("log-text");
   const toastArea = document.getElementById("toast-area");
@@ -549,52 +644,262 @@ if (typeof THREE === "undefined") {
   bobber.visible = false;
   scene.add(bobber);
 
+  // 水しぶき (キャスト着水・釣り上げ時)
+  const splashPool = [];
+  function spawnSplash(pos, big) {
+    const n = big ? 6 : 3;
+    for (let i = 0; i < n; i++) {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.5, 0.62, 20),
+        new THREE.MeshBasicMaterial({ color: 0xeaffff, transparent: true, opacity: 0.8, side: THREE.DoubleSide })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(pos.x, 0.02, pos.z);
+      ring.scale.setScalar(0.15);
+      ring.userData.life = 0;
+      ring.userData.maxLife = rand(0.4, 0.7) + i * 0.05;
+      ring.userData.delay = i * 0.05;
+      ring.userData.big = big;
+      scene.add(ring);
+      splashPool.push(ring);
+    }
+    // 水しぶきの水滴
+    const dropletCount = big ? 10 : 5;
+    for (let i = 0; i < dropletCount; i++) {
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.05, 5, 5), new THREE.MeshStandardMaterial({ color: 0xeaffff, transparent: true, opacity: 0.9 }));
+      const ang = rand(0, Math.PI * 2);
+      const spd = rand(1.2, big ? 4 : 2.4);
+      drop.position.set(pos.x, 0.1, pos.z);
+      drop.userData.vx = Math.cos(ang) * spd;
+      drop.userData.vz = Math.sin(ang) * spd;
+      drop.userData.vy = rand(1.8, big ? 4.5 : 2.8);
+      drop.userData.life = 0;
+      drop.userData.maxLife = rand(0.35, 0.55);
+      drop.userData.isDrop = true;
+      scene.add(drop);
+      splashPool.push(drop);
+    }
+  }
+  function updateSplashes(dt) {
+    for (let i = splashPool.length - 1; i >= 0; i--) {
+      const s = splashPool[i];
+      if (s.userData.delay && s.userData.delay > 0) { s.userData.delay -= dt; continue; }
+      s.userData.life += dt;
+      const p = clamp(s.userData.life / s.userData.maxLife, 0, 1);
+      if (s.userData.isDrop) {
+        s.userData.vy -= 9.8 * dt;
+        s.position.x += s.userData.vx * dt;
+        s.position.z += s.userData.vz * dt;
+        s.position.y += s.userData.vy * dt;
+        s.material.opacity = 0.9 * (1 - p);
+        if (s.position.y <= 0 || p >= 1) { scene.remove(s); splashPool.splice(i, 1); }
+      } else {
+        s.scale.setScalar(0.15 + p * (s.userData.big ? 3.2 : 1.8));
+        s.material.opacity = 0.8 * (1 - p);
+        if (p >= 1) { scene.remove(s); splashPool.splice(i, 1); }
+      }
+    }
+  }
+
+  // 魚の影 (アタリが来る前に近づいてくる演出)
+  const approachShadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.001, 16),
+    new THREE.MeshBasicMaterial({ color: 0x08222f, transparent: true, opacity: 0.55 })
+  );
+  approachShadow.rotation.x = -Math.PI / 2;
+  approachShadow.visible = false;
+  scene.add(approachShadow);
+  const shadowStart = new THREE.Vector3();
+  let shadowActive = false;
+
   // ---------------------------------------------------------------
-  // 魚メッシュ生成
+  // 魚メッシュ生成 (体は紡錘形のろくろ形状でリアルな輪郭に)
   // ---------------------------------------------------------------
+
+  const FISH_BODY_PROFILE = [
+    [0.0, -0.38], [0.05, -0.33], [0.14, -0.22], [0.22, -0.06],
+    [0.25, 0.04], [0.23, 0.14], [0.17, 0.24], [0.10, 0.32],
+    [0.04, 0.37], [0.0, 0.38],
+  ].map(([r, y]) => new THREE.Vector2(r, y));
+  const FISH_BODY_GEO = new THREE.LatheGeometry(FISH_BODY_PROFILE, 14);
+  FISH_BODY_GEO.rotateZ(-Math.PI / 2); // 長辺(鼻先〜尾)を +X 方向にそろえる
+
+  function makeTailShapeGeo(kind) {
+    const shape = new THREE.Shape();
+    if (kind === "fan") {
+      shape.moveTo(0, 0);
+      shape.lineTo(0.12, 0.4);
+      shape.quadraticCurveTo(0.5, 0.46, 0.56, 0);
+      shape.quadraticCurveTo(0.5, -0.46, 0.12, -0.4);
+      shape.lineTo(0, 0);
+    } else {
+      shape.moveTo(0, 0);
+      shape.lineTo(0.5, 0.42);
+      shape.quadraticCurveTo(0.22, 0, 0.5, -0.42);
+      shape.lineTo(0, 0);
+    }
+    return new THREE.ShapeGeometry(shape, 8);
+  }
+  const TAIL_GEO_FORK = makeTailShapeGeo("fork");
+  const TAIL_GEO_FAN = makeTailShapeGeo("fan");
+
+  function makeFinShapeGeo() {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(-0.16, -0.05);
+    shape.lineTo(-0.22, -0.34);
+    shape.lineTo(-0.02, -0.14);
+    shape.lineTo(0, 0);
+    return new THREE.ShapeGeometry(shape, 6);
+  }
+  const FIN_GEO = makeFinShapeGeo();
+
+  function makeDorsalShapeGeo() {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(-0.3, 0.04);
+    shape.lineTo(-0.36, 0.32);
+    shape.lineTo(-0.08, 0.16);
+    shape.lineTo(0, 0);
+    return new THREE.ShapeGeometry(shape, 6);
+  }
+  const DORSAL_GEO = makeDorsalShapeGeo();
+
+  // 種ごとの模様テクスチャ (カウンターシェーディング + 柄)。u=胴まわり(0.5=背中,0/1=腹), v=尾→鼻。
+  const fishTextureCache = new Map();
+  function hexToRgbStr(hex, alpha) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+  }
+  function generateFishTexture(sp) {
+    if (fishTextureCache.has(sp.id)) return fishTextureCache.get(sp.id);
+    const W = 128, H = 96;
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const ctx2 = c.getContext("2d");
+
+    // ベース: カウンターシェーディング (背中=種の色, 腹=白っぽく)
+    for (let x = 0; x < W; x++) {
+      const u = x / W;
+      const shade = Math.pow(Math.sin(u * Math.PI), 0.8); // 0=腹, 1=背中
+      ctx2.fillStyle = mixHex(sp.color, "#f4efe4", 1 - shade);
+      ctx2.fillRect(x, 0, 1, H);
+    }
+
+    // 柄
+    ctx2.globalAlpha = 0.55;
+    if (sp.pattern === "stripes") {
+      const bands = [0.2, 0.5, 0.8];
+      bands.forEach((bu, i) => {
+        ctx2.fillStyle = hexToRgbStr(sp.accent, 0.8);
+        ctx2.fillRect(bu * W - 2, 0, 4, H);
+      });
+    } else if (sp.pattern === "spots") {
+      ctx2.fillStyle = hexToRgbStr(sp.accent, 0.75);
+      const n = 26;
+      for (let i = 0; i < n; i++) {
+        const x = rand(0, W), y = rand(H * 0.05, H * 0.7);
+        const r = rand(2, 5);
+        ctx2.beginPath(); ctx2.arc(x, y, r, 0, Math.PI * 2); ctx2.fill();
+      }
+    } else if (sp.pattern === "patches") {
+      ctx2.fillStyle = hexToRgbStr(sp.accent, 0.85);
+      const n = 6;
+      for (let i = 0; i < n; i++) {
+        const x = rand(0, W), y = rand(0, H * 0.75);
+        const rw = rand(10, 22), rh = rand(8, 16);
+        ctx2.beginPath(); ctx2.ellipse(x, y, rw, rh, rand(0, Math.PI), 0, Math.PI * 2); ctx2.fill();
+      }
+    }
+    ctx2.globalAlpha = 1;
+
+    // 側面のうろこ風テクスチャ (背中寄りのみ、細かい網目)
+    ctx2.strokeStyle = "rgba(0,0,0,0.06)";
+    ctx2.lineWidth = 1;
+    for (let y = 4; y < H * 0.85; y += 6) {
+      ctx2.beginPath();
+      for (let x = 0; x <= W; x += 8) {
+        const yy = y + (Math.floor(x / 8) % 2 === 0 ? 0 : 3);
+        if (x === 0) ctx2.moveTo(x, yy); else ctx2.lineTo(x, yy);
+      }
+      ctx2.stroke();
+    }
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.needsUpdate = true;
+    fishTextureCache.set(sp.id, tex);
+    return tex;
+  }
+  function mixHex(hexA, hexB, t) {
+    const a = { r: parseInt(hexA.slice(1, 3), 16), g: parseInt(hexA.slice(3, 5), 16), b: parseInt(hexA.slice(5, 7), 16) };
+    const b = { r: parseInt(hexB.slice(1, 3), 16), g: parseInt(hexB.slice(3, 5), 16), b: parseInt(hexB.slice(5, 7), 16) };
+    const r = Math.round(a.r + (b.r - a.r) * t), g = Math.round(a.g + (b.g - a.g) * t), bl = Math.round(a.b + (b.b - a.b) * t);
+    return `rgb(${r},${g},${bl})`;
+  }
 
   function createFishMesh(sp) {
     const group = new THREE.Group();
     const rarityDef = RARITY[sp.rarity];
     const bodyMat = new THREE.MeshStandardMaterial({
-      color: sp.color, flatShading: true, roughness: 0.55, metalness: 0.1,
+      map: generateFishTexture(sp), color: 0xffffff, roughness: 0.42, metalness: 0.15,
       emissive: rarityDef.glow ? new THREE.Color(sp.color) : 0x000000,
       emissiveIntensity: rarityDef.glow ? 0.35 : 0,
     });
-    const accentMat = new THREE.MeshStandardMaterial({ color: sp.accent, flatShading: true, roughness: 0.6 });
+    const accentMat = new THREE.MeshStandardMaterial({
+      color: sp.accent, roughness: 0.5, metalness: 0.1, side: THREE.DoubleSide,
+    });
 
     let bodyScale = [1, 0.75, 0.55];
-    if (sp.shape === "slim") bodyScale = [1.5, 0.55, 0.42];
-    else if (sp.shape === "round") bodyScale = [1.0, 0.9, 0.65];
-    else if (sp.shape === "blob") bodyScale = [0.95, 0.85, 0.85];
-    else if (sp.shape === "ribbon") bodyScale = [2.6, 0.32, 0.22];
-    else if (sp.shape === "disc") bodyScale = [1.2, 1.5, 0.42];
+    let tailGeo = TAIL_GEO_FORK;
+    if (sp.shape === "slim") { bodyScale = [1.5, 0.55, 0.42]; tailGeo = TAIL_GEO_FORK; }
+    else if (sp.shape === "round") { bodyScale = [1.0, 0.9, 0.65]; tailGeo = TAIL_GEO_FAN; }
+    else if (sp.shape === "blob") { bodyScale = [0.95, 0.85, 0.85]; tailGeo = TAIL_GEO_FAN; }
+    else if (sp.shape === "ribbon") { bodyScale = [2.6, 0.32, 0.22]; tailGeo = TAIL_GEO_FORK; }
+    else if (sp.shape === "disc") { bodyScale = [1.2, 1.5, 0.42]; tailGeo = TAIL_GEO_FAN; }
 
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), bodyMat);
+    const body = new THREE.Mesh(FISH_BODY_GEO, bodyMat);
     body.scale.set(...bodyScale);
     group.add(body);
 
-    const tailLen = sp.shape === "ribbon" ? 0.3 : 0.55;
-    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.32 * bodyScale[1] * 2, tailLen, 4), accentMat);
-    tail.rotation.z = Math.PI / 2;
-    tail.position.set(-0.5 * bodyScale[0] - tailLen * 0.4, 0, 0);
+    const tailScale = Math.max(bodyScale[1], bodyScale[2]) * 1.5;
+    const tail = new THREE.Mesh(tailGeo, accentMat);
+    tail.scale.setScalar(tailScale);
+    tail.position.set(-0.38 * bodyScale[0], 0, 0);
     group.add(tail);
 
-    const finTop = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.34, 3), accentMat);
-    finTop.position.set(0, 0.34 * bodyScale[1] * 2, 0);
-    finTop.rotation.z = Math.PI;
-    group.add(finTop);
+    const dorsal = new THREE.Mesh(DORSAL_GEO, accentMat);
+    dorsal.scale.setScalar(bodyScale[1] * 1.15);
+    dorsal.position.set(0.02 * bodyScale[0], 0.24 * bodyScale[1], 0);
+    dorsal.rotation.y = Math.PI / 2;
+    group.add(dorsal);
 
-    const eyeGeo = new THREE.SphereGeometry(0.06, 6, 6);
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101418 });
-    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-    eyeL.position.set(0.42 * bodyScale[0], 0.08, 0.18 * bodyScale[2] * 2);
-    const eyeR = eyeL.clone();
-    eyeR.position.z *= -1;
-    group.add(eyeL, eyeR);
+    for (const side of [1, -1]) {
+      const fin = new THREE.Mesh(FIN_GEO, accentMat);
+      fin.scale.setScalar(bodyScale[1] * 1.05);
+      fin.position.set(0.16 * bodyScale[0], -0.02 * bodyScale[1], side * 0.32 * bodyScale[2]);
+      fin.rotation.x = side > 0 ? -Math.PI / 2.4 : Math.PI / 2.4;
+      fin.rotation.y = side > 0 ? 0.3 : -0.3;
+      group.add(fin);
+    }
+
+    const eyeGeo = new THREE.SphereGeometry(0.055, 8, 8);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x101418, roughness: 0.2 });
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x334455, emissiveIntensity: 0.3 });
+    for (const side of [1, -1]) {
+      const eyeGroup = new THREE.Group();
+      const eyeBall = new THREE.Mesh(eyeGeo, eyeMat);
+      eyeGroup.add(eyeBall);
+      const glint = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), pupilMat);
+      glint.position.set(0.02, 0.02, side * 0.03);
+      eyeGroup.add(glint);
+      eyeGroup.position.set(0.3 * bodyScale[0], 0.09 * bodyScale[1] * 2, side * 0.19 * bodyScale[2] * 2);
+      group.add(eyeGroup);
+    }
 
     if (sp.id === "anko") {
-      const lureStem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 5), accentMat);
+      const lureStem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.5, 5), accentMat);
       lureStem.position.set(0.4, 0.55, 0);
       lureStem.rotation.z = -0.5;
       const lureBulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshStandardMaterial({ color: 0xfff2b0, emissive: 0xfff2b0, emissiveIntensity: 1.2 }));
@@ -648,6 +953,7 @@ if (typeof THREE === "undefined") {
   tankGroup.add(tankGlass);
 
   // ガラスのフチ (視認性のための枠)
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0x1c2733, flatShading: true });
   for (const cx of [-TANK_SIZE.x / 2, TANK_SIZE.x / 2]) {
     for (const cz of [-TANK_SIZE.z / 2, TANK_SIZE.z / 2]) {
       const post = makeBoxMesh(0.14, TANK_SIZE.y, 0.14, 0x1c2733);
@@ -670,10 +976,11 @@ if (typeof THREE === "undefined") {
     tankWeeds.push(weed);
   }
 
-  const tankFishMeshes = [];
+  const tankFishMeshes = []; // { mesh, dna: {x,y,z,vx,vy,vz,wiggle,speciesId,...} }
   const MAX_TANK_FISH = 16;
 
   function refreshTankFish() {
+    // 直近の MAX_TANK_FISH 匹だけを表示
     tankFishMeshes.forEach((f) => tankGroup.remove(f.mesh));
     tankFishMeshes.length = 0;
     const recent = state.catches.slice(-MAX_TANK_FISH);
@@ -745,43 +1052,65 @@ if (typeof THREE === "undefined") {
   let castStart = new THREE.Vector3();
   let castT = 0;
   let waitTimer = 0;
+  let waitTimerTotal = 0;
   let biteWillOccur = true;
   let hookTimer = 0;
   let hookWindowTotal = 1.3;
   let pendingCatch = null;
-  let reelMeter = 0;
-  let reelTimeLeft = 0;
-  let reelTimeTotal = 6;
-  let reelPullTimer = 0;
+  let reelProgress = 0;
+  let reelZoneY = 50;
+  let reelZoneV = 0;
+  let reelFishY = 50;
+  let reelFishTargetY = 50;
+  let reelFishChangeTimer = 0;
+  let reelElapsed = 0;
   let currentTab = "dock";
 
   function setFsm(next) { fsm = next; }
 
-  function startCast() {
+  function startCast(power) {
     if (fsm !== FSM.IDLE) return;
     state.totalCasts++;
     save();
     setFsm(FSM.CASTING);
     castStart.copy(rodTipWorld);
+    const p = clamp(power == null ? 0.5 : power, 0, 1);
     const cx = rand(-4, 4);
-    const cz = rand(-10, -17);
+    const cz = lerp(-7, -25, p);
     castTarget.set(cx, 0, cz);
     castT = 0;
     bobber.visible = true;
     castBtn.disabled = true;
+    shadowActive = false;
+    approachShadow.visible = false;
     log("えいっ!");
   }
 
   function afterCastSettled() {
     setFsm(FSM.WAITING);
-    waitTimer = rand(2.2, 5.5);
+    waitTimerTotal = rand(2.4, 5.8);
+    waitTimer = waitTimerTotal;
     biteWillOccur = Math.random() > 0.1;
+    shadowActive = false;
+    approachShadow.visible = false;
+    spawnSplash(bobber.position, false);
     log("魚のあたりを待とう…");
   }
 
   function triggerBite() {
     setFsm(FSM.BITE);
-    const rarity = rollRarity();
+    approachShadow.visible = false;
+    const isJunk = Math.random() < JUNK_CHANCE;
+    if (isJunk) {
+      hookWindowTotal = 1.6;
+      hookTimer = hookWindowTotal;
+      pendingCatch = { junk: true, junkName: JUNK_ITEMS[randInt(0, JUNK_ITEMS.length - 1)] };
+      hookBtn.hidden = false;
+      log("❗ 何かかかった…?");
+      toast("あわせろ!");
+      return;
+    }
+    const rarity = rollRarity(currentRod().maxRarity);
     hookWindowTotal = RARITY[rarity].hookWindow;
     hookTimer = hookWindowTotal;
     pendingCatch = { plannedRarity: rarity };
@@ -792,15 +1121,31 @@ if (typeof THREE === "undefined") {
 
   function doHook() {
     if (fsm !== FSM.BITE) return;
-    const rarityDef = RARITY[pendingCatch.plannedRarity];
-    reelMeter = 8;
-    reelTimeTotal = rarityDef.reelTime;
-    reelTimeLeft = reelTimeTotal;
-    reelPullTimer = rand(rarityDef.tugInterval[0], rarityDef.tugInterval[1]);
-    setFsm(FSM.REELING);
     hookBtn.hidden = true;
+    if (pendingCatch.junk) {
+      resolveJunkCatch();
+      return;
+    }
+    reelProgress = 15;
+    reelZoneY = 50;
+    reelZoneV = 0;
+    reelFishY = 50;
+    reelFishTargetY = 50;
+    reelFishChangeTimer = 0;
+    reelElapsed = 0;
+    setFsm(FSM.REELING);
     reelWrap.hidden = false;
-    log("巻け巻け!");
+    log("引き上げろ!ゾーンに魚を入れ続けよう");
+  }
+
+  function resolveJunkCatch() {
+    const name = pendingCatch.junkName;
+    spawnSplash(bobber.position, false);
+    toast(`残念、${name}が釣れた…`);
+    log(`${name}を釣り上げてしまった。仕掛けをやり直そう。`);
+    setFsm(FSM.IDLE);
+    resetBobber();
+    castBtn.disabled = false;
   }
 
   function missHook() {
@@ -815,6 +1160,8 @@ if (typeof THREE === "undefined") {
   function resetBobber() {
     bobber.visible = false;
     pendingCatch = null;
+    shadowActive = false;
+    approachShadow.visible = false;
   }
 
   function finishReelSuccess() {
@@ -824,15 +1171,18 @@ if (typeof THREE === "undefined") {
     const weight = rand(sp.weight[0], sp.weight[1]);
     const wasFirst = !state.catches.some((c) => c.speciesId === sp.id);
     const catchData = { speciesId: sp.id, rarity: sp.rarity, size, weight, caughtAt: Date.now() };
-    const isRecord = recordCatch(catchData);
+    const { isRecord, coinsEarned } = recordCatch(catchData);
     refreshTankFish();
     updateStatsUI();
-    showCatchCard(sp, catchData, wasFirst, isRecord);
+    spawnSplash(bobber.position, true);
+    showCatchCard(sp, catchData, wasFirst, isRecord, coinsEarned);
+    checkRodCompletion();
+    updateStatsUI();
     setFsm(FSM.IDLE);
     reelWrap.hidden = true;
     resetBobber();
     castBtn.disabled = false;
-    log(`${sp.name} をゲットした!`);
+    log(`${sp.name} をゲットした!(+${coinsEarned}コイン)`);
   }
 
   function finishReelFail() {
@@ -848,13 +1198,14 @@ if (typeof THREE === "undefined") {
   // 釣果カード
   // ---------------------------------------------------------------
 
-  function showCatchCard(sp, catchData, wasFirst, isRecord) {
+  function showCatchCard(sp, catchData, wasFirst, isRecord, coinsEarned) {
     const rarityDef = RARITY[sp.rarity];
     catchCardInner.innerHTML = `
       <div class="catch-rarity" style="--rc:${rarityDef.color}">${rarityDef.label}</div>
       ${wasFirst ? '<div class="catch-new">NEW!</div>' : ""}
       <div class="catch-fish-name">${sp.name}</div>
       <div class="catch-fish-stats">
+        <span>🪙 +${coinsEarned}</span>
         <span>${catchData.size.toFixed(1)} cm</span>
         <span>${catchData.weight.toFixed(2)} kg</span>
       </div>
@@ -873,12 +1224,29 @@ if (typeof THREE === "undefined") {
   // UI イベント
   // ---------------------------------------------------------------
 
-  castBtn.addEventListener("click", startCast);
+  const CAST_MIN_HOLD = 0.12, CAST_MAX_HOLD = 1.3;
+  let castCharging = false;
+  let castChargeStart = 0;
+  castBtn.addEventListener("pointerdown", () => {
+    if (fsm !== FSM.IDLE || castCharging) return;
+    castCharging = true;
+    castChargeStart = performance.now();
+    castBtn.textContent = "⏳ ためて…はなす!";
+  });
+  window.addEventListener("pointerup", () => {
+    if (!castCharging) return;
+    castCharging = false;
+    const held = (performance.now() - castChargeStart) / 1000;
+    const power = clamp((held - CAST_MIN_HOLD) / (CAST_MAX_HOLD - CAST_MIN_HOLD), 0, 1);
+    castBtn.textContent = "🎣 なげる";
+    startCast(power);
+  });
   hookBtn.addEventListener("click", doHook);
 
   let reelHeld = false;
   reelBtn.addEventListener("pointerdown", () => { reelHeld = true; });
   window.addEventListener("pointerup", () => { reelHeld = false; });
+  reelBtn.addEventListener("pointerleave", () => {});
 
   feedBtn.addEventListener("click", () => {
     const now = Date.now();
@@ -890,7 +1258,6 @@ if (typeof THREE === "undefined") {
     spawnFeedPellets();
   });
 
-  const feedPellets = [];
   function spawnFeedPellets() {
     for (let i = 0; i < 6; i++) {
       const pellet = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), new THREE.MeshStandardMaterial({ color: 0x7a4b21 }));
@@ -901,6 +1268,7 @@ if (typeof THREE === "undefined") {
       feedPellets.push(pellet);
     }
   }
+  const feedPellets = [];
   function updateFeedPellets(dt) {
     for (let i = feedPellets.length - 1; i >= 0; i--) {
       const p = feedPellets[i];
@@ -925,8 +1293,22 @@ if (typeof THREE === "undefined") {
     document.getElementById("tank-hud").hidden = tab !== "tank";
   }
 
-  dexBtn.addEventListener("click", () => { renderDex(); dexPanel.classList.add("open"); });
+  dexBtn.addEventListener("click", () => { renderDex(); renderRodShop(); dexPanel.classList.add("open"); });
   dexClose.addEventListener("click", () => dexPanel.classList.remove("open"));
+
+  panelTabDex.addEventListener("click", () => {
+    panelTabDex.classList.add("active");
+    panelTabRod.classList.remove("active");
+    panelDex.hidden = false;
+    panelRod.hidden = true;
+  });
+  panelTabRod.addEventListener("click", () => {
+    panelTabRod.classList.add("active");
+    panelTabDex.classList.remove("active");
+    panelRod.hidden = false;
+    panelDex.hidden = true;
+    renderRodShop();
+  });
 
   function renderDex() {
     dexList.innerHTML = "";
@@ -956,14 +1338,67 @@ if (typeof THREE === "undefined") {
 
   function updateStatsUI() {
     statCatches.textContent = state.totalCatches;
-    const speciesCount = new Set(state.catches.map((c) => c.speciesId)).size;
+    const speciesCount = discoveredCount();
     statSpecies.textContent = `${speciesCount}/${SPECIES.length}`;
+    statCoins.textContent = state.coins;
+    statRod.textContent = currentRod().name;
     let bestLabel = "-";
     let bestVal = 0;
     Object.entries(state.bestSize).forEach(([id, v]) => {
       if (v > bestVal) { bestVal = v; bestLabel = speciesById(id) ? speciesById(id).name : id; }
     });
     statBest.textContent = bestVal > 0 ? `${bestLabel} ${bestVal.toFixed(1)}cm` : "-";
+  }
+
+  // ---------------------------------------------------------------
+  // 竿ショップ
+  // ---------------------------------------------------------------
+
+  function renderRodShop() {
+    rodList.innerHTML = "";
+    RODS.forEach((rod) => {
+      const owned = state.rodLevel >= rod.level;
+      const isCurrent = state.rodLevel === rod.level;
+      const isNext = state.rodLevel === rod.level - 1 && !rod.rewardOnly;
+      const row = document.createElement("div");
+      row.className = "rod-item" + (isCurrent ? " current" : "");
+      let btnHtml;
+      if (rod.rewardOnly) {
+        btnHtml = owned
+          ? `<span class="rod-buy-btn" style="background:var(--gold);color:#3a2600;">入手済</span>`
+          : `<span class="rod-buy-btn" style="background:#5c7a70;color:#cdd;">図鑑報酬</span>`;
+      } else if (owned) {
+        btnHtml = `<span class="rod-buy-btn" style="background:${isCurrent ? "var(--gold)" : "#5c7a70"};color:${isCurrent ? "#3a2600" : "#cdd"};">${isCurrent ? "使用中" : "所持済"}</span>`;
+      } else {
+        const canBuy = isNext && state.coins >= rod.cost;
+        btnHtml = `<button class="rod-buy-btn" data-level="${rod.level}" ${canBuy ? "" : "disabled"}>${isNext ? rod.cost + "コイン" : "未解禁"}</button>`;
+      }
+      row.innerHTML = `
+        <div class="rod-swatch">🎣</div>
+        <div class="dex-info" style="flex:1;">
+          <div class="rod-name">${rod.name}</div>
+          <div class="rod-meta"><span>${rod.desc}</span></div>
+        </div>
+        ${btnHtml}
+      `;
+      const buyBtn = row.querySelector("button.rod-buy-btn");
+      if (buyBtn) buyBtn.addEventListener("click", () => buyRod(rod.level));
+      rodList.appendChild(row);
+    });
+  }
+
+  function buyRod(level) {
+    const rod = RODS[level];
+    if (!rod || rod.rewardOnly) return;
+    if (state.rodLevel !== level - 1) return;
+    if (state.coins < rod.cost) { toast("コインが足りません"); return; }
+    state.coins -= rod.cost;
+    state.rodLevel = level;
+    save();
+    toast(`${rod.name} を手に入れた!`);
+    log(`${rod.name} にアップグレードした。`);
+    renderRodShop();
+    updateStatsUI();
   }
 
   // ---------------------------------------------------------------
@@ -976,6 +1411,7 @@ if (typeof THREE === "undefined") {
     renderer.setSize(w, h, false);
     const aspect = w / h;
     camera.aspect = aspect;
+    // 横方向の見え方をアスペクト比に関わらずそろえる (縦長スマホでズームしすぎないように)
     const hfovRad = THREE.MathUtils.degToRad(BASE_HFOV_DEG);
     const vfovRad = 2 * Math.atan(Math.tan(hfovRad / 2) / aspect);
     camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(vfovRad), 45, 100);
@@ -1009,6 +1445,7 @@ if (typeof THREE === "undefined") {
   }
 
   function updateFishingState(dt, t) {
+    rod.rotation.z = 0;
     if (fsm === FSM.CASTING) {
       castT += dt / 0.55;
       const tt = Math.min(1, castT);
@@ -1022,6 +1459,26 @@ if (typeof THREE === "undefined") {
     } else if (fsm === FSM.WAITING) {
       bobber.position.y = 0.22 + Math.sin(t * 2) * 0.1;
       waitTimer -= dt;
+
+      // 魚の影がアタリの直前に忍び寄ってくる演出
+      const shadowLead = Math.min(1.8, waitTimerTotal * 0.5);
+      if (biteWillOccur && waitTimer <= shadowLead) {
+        if (!shadowActive) {
+          shadowActive = true;
+          const ang = rand(0, Math.PI * 2);
+          const dist = rand(5, 8);
+          shadowStart.set(bobber.position.x + Math.cos(ang) * dist, 0, bobber.position.z + Math.sin(ang) * dist);
+          approachShadow.visible = true;
+          approachShadow.scale.setScalar(1);
+        }
+        const pctIn = 1 - clamp(waitTimer / shadowLead, 0, 1);
+        approachShadow.position.lerpVectors(shadowStart, bobber.position, pctIn);
+        approachShadow.position.y = 0.03;
+        const wig = Math.sin(t * 9) * 0.15;
+        approachShadow.rotation.z = Math.atan2(bobber.position.x - shadowStart.x, bobber.position.z - shadowStart.z) + wig;
+        approachShadow.scale.set(0.5 + pctIn * 0.5, 1.1 + pctIn * 0.6, 1);
+      }
+
       if (waitTimer <= 0) {
         if (biteWillOccur) triggerBite();
         else {
@@ -1039,21 +1496,41 @@ if (typeof THREE === "undefined") {
       if (hookTimer <= 0) missHook();
     } else if (fsm === FSM.REELING) {
       bobber.position.y = Math.sin(t * 10) * 0.2;
+      rod.rotation.z = 0.12 + Math.sin(t * 9) * 0.05;
       const rarityDef = RARITY[pendingCatch.plannedRarity];
-      reelMeter += (reelHeld ? REEL_HOLD_GAIN : -REEL_RELEASE_DRAIN) * dt;
-      reelPullTimer -= dt;
-      if (reelPullTimer <= 0) {
-        reelPullTimer = rand(rarityDef.tugInterval[0], rarityDef.tugInterval[1]);
-        reelMeter -= rand(rarityDef.tug[0], rarityDef.tug[1]);
-        reelBtn.classList.add("shake");
-        setTimeout(() => reelBtn.classList.remove("shake"), 200);
+
+      // ゾーン (プレイヤー操作): 押している間は上昇、離すと重力で落ちる
+      reelZoneV += (reelHeld ? REEL_RISE_ACCEL : -REEL_GRAVITY) * dt;
+      reelZoneV = clamp(reelZoneV, -REEL_MAX_V, REEL_MAX_V);
+      reelZoneY += reelZoneV * dt;
+      const halfZone = (rarityDef.zoneHeight + (currentRod().zoneBonus || 0)) / 2;
+      if (reelZoneY - halfZone < 0) { reelZoneY = halfZone; reelZoneV = Math.max(0, reelZoneV); }
+      if (reelZoneY + halfZone > 100) { reelZoneY = 100 - halfZone; reelZoneV = Math.min(0, reelZoneV); }
+
+      // 魚 (AI): ランダムな目標に向かって不規則に泳ぐ
+      reelFishChangeTimer -= dt;
+      if (reelFishChangeTimer <= 0) {
+        reelFishChangeTimer = rand(rarityDef.fishChange[0], rarityDef.fishChange[1]);
+        reelFishTargetY = rand(10, 90);
       }
-      reelMeter = clamp(reelMeter, 0, 100);
-      reelTimeLeft -= dt;
-      reelMeterFill.style.width = reelMeter + "%";
-      reelTimeFill.style.width = clamp((reelTimeLeft / reelTimeTotal) * 100, 0, 100) + "%";
-      if (reelMeter >= 100) finishReelSuccess();
-      else if (reelTimeLeft <= 0) finishReelFail();
+      reelFishY += (reelFishTargetY - reelFishY) * clamp(dt * 2.4, 0, 1);
+      reelFishY += Math.sin(t * 6 + rarityDef.fishJitter) * rarityDef.fishJitter * dt;
+      reelFishY = clamp(reelFishY, 2, 98);
+
+      // 進捗: 魚がゾーン内にいれば上昇、外に出ていれば下降
+      const inZone = Math.abs(reelFishY - reelZoneY) <= halfZone;
+      reelProgress += (inZone ? REEL_FILL_RATE : -REEL_DRAIN_RATE) * dt;
+      reelProgress = clamp(reelProgress, 0, 100);
+      reelElapsed += dt;
+
+      reelZoneEl.style.height = (halfZone * 2) + "%";
+      reelZoneEl.style.bottom = (reelZoneY - halfZone) + "%";
+      reelZoneEl.style.background = inZone ? "rgba(79,214,124,0.6)" : "rgba(255,255,255,0.18)";
+      reelFishEl.style.bottom = reelFishY + "%";
+      reelProgressFill.style.height = reelProgress + "%";
+
+      if (reelProgress >= 100) finishReelSuccess();
+      else if (reelProgress <= 0 || reelElapsed >= REEL_MAX_DURATION) finishReelFail();
     } else {
       bobber.position.y = 0;
     }
@@ -1070,6 +1547,7 @@ if (typeof THREE === "undefined") {
     updateFishingLine();
     updateTankFish(dt, t);
     updateFeedPellets(dt);
+    updateSplashes(dt);
 
     camPos.lerp(camTarget.pos, 1 - Math.pow(0.001, dt));
     camLook.lerp(camTarget.look, 1 - Math.pow(0.001, dt));
@@ -1093,6 +1571,7 @@ if (typeof THREE === "undefined") {
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
 })();
+
 }
 </script>
 
