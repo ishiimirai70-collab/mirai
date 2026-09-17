@@ -176,6 +176,7 @@ function createDefaultProject(name) {
     engineVersion: "1.21.0",
     icon: null,
     useScript: false,
+    packVersion: [1, 0, 0],
     bpHeaderUuid: uuid(),
     bpModuleUuid: uuid(),
     bpScriptModuleUuid: uuid(),
@@ -298,15 +299,16 @@ function parseEngineVersion(str) {
 
 function buildManifests(project) {
   const engine = parseEngineVersion(project.engineVersion);
-  const bpModules = [{ type: "data", uuid: project.bpModuleUuid, version: [1, 0, 0] }];
-  const bpDependencies = [{ uuid: project.rpHeaderUuid, version: [1, 0, 0] }];
+  const ver = project.packVersion || [1, 0, 0];
+  const bpModules = [{ type: "data", uuid: project.bpModuleUuid, version: ver }];
+  const bpDependencies = [{ uuid: project.rpHeaderUuid, version: ver }];
   if (project.useScript) {
     bpModules.push({
       type: "script",
       language: "javascript",
       uuid: project.bpScriptModuleUuid,
       entry: "scripts/main.js",
-      version: [1, 0, 0]
+      version: ver
     });
     bpDependencies.push({ module_name: "@minecraft/server", version: "1.13.0" });
   }
@@ -316,7 +318,7 @@ function buildManifests(project) {
       name: project.name,
       description: project.desc || "",
       uuid: project.bpHeaderUuid,
-      version: [1, 0, 0],
+      version: ver,
       min_engine_version: engine
     },
     modules: bpModules,
@@ -328,12 +330,18 @@ function buildManifests(project) {
       name: project.name + " RP",
       description: project.desc || "",
       uuid: project.rpHeaderUuid,
-      version: [1, 0, 0],
+      version: ver,
       min_engine_version: engine
     },
-    modules: [{ type: "resources", uuid: project.rpModuleUuid, version: [1, 0, 0] }]
+    modules: [{ type: "resources", uuid: project.rpModuleUuid, version: ver }]
   };
   return { bpManifest, rpManifest };
+}
+function bumpPackVersion(project) {
+  const ver = (project.packVersion || [1, 0, 0]).slice();
+  ver[2] = (ver[2] || 0) + 1;
+  project.packVersion = ver;
+  return ver;
 }
 
 /* ---------- placeholder texture generation ---------- */
@@ -435,10 +443,6 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     if (btn.dataset.tab === "manifest") renderManifestTab();
   });
 });
-el("menuToggle").addEventListener("click", () => {
-  el("tabs").classList.toggle("open");
-});
-
 /* ---------- project list / switching ---------- */
 async function loadProjects() {
   projects = await idbGetAll("projects");
@@ -446,6 +450,9 @@ async function loadProjects() {
     const p = createDefaultProject("マイアドオン");
     await idbPut("projects", p);
     projects = [p];
+  }
+  for (const p of projects) {
+    if (!p.packVersion) p.packVersion = [1, 0, 0];
   }
   projects.sort((a, b) => a.createdAt - b.createdAt);
   renderProjectSelect();
@@ -554,10 +561,11 @@ function regenerateAllJsonIfClean() {
 function renderManifestTab() {
   const p = currentProject;
   const { bpManifest, rpManifest } = buildManifests(p);
+  const verStr = (p.packVersion || [1, 0, 0]).join(".");
   el("manifestBPInfo").innerHTML =
-    `<div>header uuid: ${p.bpHeaderUuid}</div><div>data module uuid: ${p.bpModuleUuid}</div>` +
+    `<div>バージョン: ${verStr}</div><div>header uuid: ${p.bpHeaderUuid}</div><div>data module uuid: ${p.bpModuleUuid}</div>` +
     (p.useScript ? `<div>script module uuid: ${p.bpScriptModuleUuid}</div>` : "");
-  el("manifestRPInfo").innerHTML = `<div>header uuid: ${p.rpHeaderUuid}</div><div>resources module uuid: ${p.rpModuleUuid}</div>`;
+  el("manifestRPInfo").innerHTML = `<div>バージョン: ${verStr}</div><div>header uuid: ${p.rpHeaderUuid}</div><div>resources module uuid: ${p.rpModuleUuid}</div>`;
   el("manifestBPPreview").value = JSON.stringify(bpManifest, null, 2);
   el("manifestRPPreview").value = JSON.stringify(rpManifest, null, 2);
 }
@@ -936,29 +944,71 @@ el("ai_apply").addEventListener("click", () => {
 
 /* ---- export tab ---- */
 function renderExportTab() {
-  const supported = !!window.showDirectoryPicker;
-  el("fsapiUnsupported").style.display = supported ? "none" : "block";
-  el("fsapiArea").style.display = supported ? "block" : "none";
-  if (supported) refreshFolderStatus();
+  el("packVersionLabel").textContent = (currentProject.packVersion || [1, 0, 0]).join(".");
+
+  const fsSupported = !!window.showDirectoryPicker;
+  el("fsapiUnsupported").style.display = fsSupported ? "none" : "block";
+  el("fsapiArea").style.display = fsSupported ? "block" : "none";
+  if (fsSupported) refreshFolderStatus();
+
+  const shareSupported = !!(navigator.share && navigator.canShare);
+  el("shareUnsupported").style.display = shareSupported ? "none" : "block";
+  el("shareToMinecraftBtn").disabled = !shareSupported;
+}
+
+async function buildMcaddonBlob(project) {
+  const { bpFiles, rpFiles } = await buildFileMap(project);
+  const zip = new JSZip();
+  const baseName = sanitizeFileName(project.name);
+  const bpFolder = zip.folder(baseName + " BP");
+  const rpFolder = zip.folder(baseName + " RP");
+  for (const [path, val] of Object.entries(bpFiles)) bpFolder.file(path, val);
+  for (const [path, val] of Object.entries(rpFiles)) rpFolder.file(path, val);
+  const blob = await zip.generateAsync({ type: "blob" });
+  return { blob, filename: baseName + ".mcaddon" };
 }
 
 el("downloadMcaddonBtn").addEventListener("click", async () => {
   const btn = el("downloadMcaddonBtn");
   btn.disabled = true; btn.textContent = "書き出し中...";
   try {
-    const { bpFiles, rpFiles } = await buildFileMap(currentProject);
-    const zip = new JSZip();
-    const baseName = sanitizeFileName(currentProject.name);
-    const bpFolder = zip.folder(baseName + " BP");
-    const rpFolder = zip.folder(baseName + " RP");
-    for (const [path, val] of Object.entries(bpFiles)) bpFolder.file(path, val);
-    for (const [path, val] of Object.entries(rpFiles)) rpFolder.file(path, val);
-    const blob = await zip.generateAsync({ type: "blob" });
-    downloadBlob(blob, baseName + ".mcaddon");
+    bumpPackVersion(currentProject);
+    renderExportTab(); renderManifestTab();
+    const { blob, filename } = await buildMcaddonBlob(currentProject);
+    downloadBlob(blob, filename);
+    saveCurrentProject();
   } catch (err) {
     alert("書き出しに失敗しました: " + err.message);
   } finally {
     btn.disabled = false; btn.textContent = ".mcaddon をダウンロード";
+  }
+});
+
+el("shareToMinecraftBtn").addEventListener("click", async () => {
+  const btn = el("shareToMinecraftBtn");
+  const status = el("shareStatus");
+  btn.disabled = true; btn.textContent = "準備中...";
+  status.textContent = "";
+  try {
+    bumpPackVersion(currentProject);
+    renderExportTab(); renderManifestTab();
+    const { blob, filename } = await buildMcaddonBlob(currentProject);
+    const file = new File([blob], filename, { type: "application/octet-stream" });
+    if (!navigator.canShare({ files: [file] })) {
+      status.textContent = "この端末はファイル共有に対応していません。方法3(ダウンロード)をご利用ください。";
+      return;
+    }
+    await navigator.share({ files: [file], title: currentProject.name });
+    status.textContent = "共有しました。表示された一覧から「Minecraft」を選んでください。";
+    saveCurrentProject();
+  } catch (err) {
+    if (err.name === "AbortError") {
+      status.textContent = "キャンセルされました。";
+    } else {
+      status.textContent = "共有に失敗しました: " + err.message + "(方法3のダウンロードをお試しください)";
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = "更新してMinecraftを開く";
   }
 });
 

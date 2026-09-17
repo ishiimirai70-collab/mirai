@@ -17,7 +17,6 @@
       <button id="newProjectBtn" class="btn small">＋新規</button>
       <button id="deleteProjectBtn" class="btn small danger">削除</button>
     </div>
-    <button id="menuToggle" class="btn small hamburger">☰</button>
   </header>
 
   <nav class="tabs" id="tabs">
@@ -161,21 +160,31 @@
     <!-- EXPORT -->
     <section id="tab-export" class="tab-panel">
       <h2>書き出し・同期</h2>
+      <p class="hint">現在のパックバージョン: <span id="packVersionLabel">1.0.0</span> (書き出す/共有するたびに自動で1つ上がります)</p>
 
       <div class="card">
-        <h3>方法1: .mcaddon をダウンロード (どの端末でも可)</h3>
-        <p class="hint">生成したファイル一式を1つの .mcaddon ファイルにまとめます。スマホでは、ダウンロード後にそのファイルをタップすればMinecraftにインポートできます。中身を変えるたびに再度ダウンロード＆インポートが必要です。</p>
-        <button class="btn" id="downloadMcaddonBtn">.mcaddon をダウンロード</button>
+        <h3>方法1(スマホでおすすめ): 更新してMinecraftを開く</h3>
+        <p class="hint">
+          最新の内容で .mcaddon を作り、端末の共有メニューからそのまま「Minecraft」を選んで開きます。ダウンロードフォルダを探す手間がなく、スマホでの編集→反映が一番早い方法です。
+          既に同じアドオンを一度インポート済みなら、Minecraft側で上書き(更新)されます。
+        </p>
+        <div id="shareUnsupported" class="warn" style="display:none">お使いのブラウザ/OSはファイル共有に対応していません。方法2をご利用ください。</div>
+        <button class="btn" id="shareToMinecraftBtn">更新してMinecraftを開く</button>
+        <div id="shareStatus" class="hint"></div>
       </div>
 
       <div class="card">
-        <h3>方法2: フォルダに直接同期 (インストールし直し不要・対応ブラウザのみ)</h3>
+        <h3>方法2: フォルダに直接同期 (インストールし直し不要)</h3>
         <p class="hint">
-          PCのChrome/Edgeでは、Minecraftの <code>development_behavior_packs</code> と <code>development_resource_packs</code> 内のフォルダを直接選択して、編集内容をそのまま書き込めます。
-          一度接続すれば、以後はこのサイトで編集して「今すぐ同期」を押すだけで反映され、ワールドを一度閉じて開き直すだけで最新の状態を確認できます(新しいアドオンとして入れ直す必要はありません)。<br>
-          ※ この機能はブラウザの File System Access API に対応した環境(主にPC版Chrome/Edge)でのみ使えます。スマホ(Android/iOS)はOS側の制限で対応していない場合が多く、その場合は方法1をご利用ください。
+          Minecraftの <code>development_behavior_packs</code> と <code>development_resource_packs</code> 内のフォルダを直接選択して、編集内容をそのまま書き込みます。
+          一度接続すれば、以後はこのサイトで編集して「今すぐ同期」を押すだけで反映され、ワールドを一度閉じて開き直すだけで最新の状態を確認できます(アドオンの入れ直しは不要)。<br>
+          PCのChrome/Edgeでは常に利用できます。スマホでも対応ブラウザなら使えますが、Android実機では下記の設定が必要な場合があります。
         </p>
-        <div id="fsapiUnsupported" class="warn" style="display:none">お使いのブラウザはこの機能に対応していません。方法1(.mcaddonダウンロード)をご利用ください。</div>
+        <details class="hint">
+          <summary>スマホ(Android)でうまく選択できないとき</summary>
+          Minecraftアプリの「設定 → ストレージ」にある保存先(Save Location)が「内部ストレージ(アプリ専用領域 / Android/data 配下)」になっていると、OSの制限でブラウザからそのフォルダを選べません。保存先を「内部ストレージ」以外(共有ストレージ)に切り替えると、<code>com.mojang</code> フォルダが通常のフォルダとして選択できるようになります。切り替えられない場合は方法1をご利用ください。
+        </details>
+        <div id="fsapiUnsupported" class="warn" style="display:none">お使いのブラウザはこの機能に対応していません。方法1または方法3をご利用ください。</div>
         <div id="fsapiArea">
           <div class="sync-row">
             <button class="btn small" id="connectBPFolder">BPフォルダを選択</button>
@@ -192,6 +201,12 @@
           <button class="btn" id="syncNowBtn">今すぐ同期</button>
           <div id="syncStatus" class="hint"></div>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>方法3: .mcaddon をダウンロード (どの端末でも可)</h3>
+        <p class="hint">生成したファイル一式を1つの .mcaddon ファイルにまとめてダウンロードします。方法1・2が使えない場合の最終手段です。</p>
+        <button class="btn" id="downloadMcaddonBtn">.mcaddon をダウンロード</button>
       </div>
     </section>
 

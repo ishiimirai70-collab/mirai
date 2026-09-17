@@ -34,7 +34,6 @@ body {
 }
 .brand { font-weight: 700; font-size: 1.1rem; margin-right: auto; }
 .project-select { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.hamburger { display: none; }
 
 .tabs {
   display: flex;
@@ -100,7 +99,6 @@ input[type=file] { padding: 6px; }
 @media (max-width: 720px) {
   .grid2 { grid-template-columns: 1fr; }
   .list-with-editor { flex-direction: column !important; }
-  .hamburger { display: inline-block; }
 }
 
 .icon-preview img { max-width: 64px; max-height: 64px; border-radius: 6px; border: 1px solid var(--border); margin-top: 6px; }
@@ -168,3 +166,7 @@ input[type=file] { padding: 6px; }
 
 fieldset { border: 1px solid var(--border); border-radius: 8px; margin: 0 0 16px; }
 legend { color: var(--muted); padding: 0 6px; font-size: 0.85rem; }
+
+details.hint { margin: 8px 0; }
+details.hint summary { cursor: pointer; color: var(--text); }
+code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
