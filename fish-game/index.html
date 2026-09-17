@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>おさかな育成 〜 My Aquarium 〜</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E%F0%9F%90%9F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header id="top-bar">
+    <h1>🐟 おさかな育成</h1>
+    <div id="stats">
+      <div class="stat-pill" title="所持コイン">💰 <span id="coin-count">0</span></div>
+      <div class="stat-pill" title="水そうの平均なかよし度">💖 <span id="happy-avg">0</span>%</div>
+      <div class="stat-pill" title="飼っている魚の数">🐠 <span id="fish-count">0</span>/<span id="fish-max">0</span></div>
+    </div>
+  </header>
+
+  <main id="main-area">
+    <section id="tank-wrap">
+      <canvas id="tank" width="900" height="560"></canvas>
+      <div id="tank-overlay">
+        <button id="feed-btn" class="action-btn">🍞 エサをあげる</button>
+        <button id="clean-btn" class="action-btn">🧽 そうじする</button>
+      </div>
+      <div id="toast-area"></div>
+    </section>
+
+    <aside id="side-panel">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="fish-tab">🐟 魚を飼う</button>
+        <button class="tab-btn" data-tab="deco-tab">🌿 かざり</button>
+        <button class="tab-btn" data-tab="info-tab">📖 図鑑</button>
+        <button class="tab-btn" data-tab="setting-tab">⚙️ 設定</button>
+      </div>
+
+      <div class="tab-panel active" id="fish-tab">
+        <p class="panel-desc">コインで新しい魚を水そうに迎えよう。</p>
+        <div id="shop-fish-list" class="shop-list"></div>
+      </div>
+
+      <div class="tab-panel" id="deco-tab">
+        <p class="panel-desc">かざりを置くと魚のなかよし度が上がりやすくなるよ。</p>
+        <div id="shop-deco-list" class="shop-list"></div>
+      </div>
+
+      <div class="tab-panel" id="info-tab">
+        <p class="panel-desc">今いる魚たちのようすを確認できます。</p>
+        <div id="fish-info-list" class="fish-info-list"></div>
+      </div>
+
+      <div class="tab-panel" id="setting-tab">
+        <p class="panel-desc">セーブデータの管理ができます。</p>
+        <div class="setting-row">
+          <button id="save-btn" class="action-btn wide">💾 いますぐセーブ</button>
+        </div>
+        <div class="setting-row">
+          <button id="reset-btn" class="action-btn wide danger">🗑️ 最初からやりなおす</button>
+        </div>
+        <p class="hint">※ 自動セーブが5秒ごとに動いています。</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="bottom-log">
+    <span id="log-text">ようこそ、あなたの水そうへ!エサをあげて魚を育てよう。</span>
+  </footer>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
