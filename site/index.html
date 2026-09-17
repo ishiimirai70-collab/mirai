@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Mirai Addon Studio - マイクラアドオン作成ツール</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛏️</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">⛏️ Mirai Addon Studio</div>
+    <div class="project-select">
+      <select id="projectSelect"></select>
+      <button id="newProjectBtn" class="btn small">＋新規</button>
+      <button id="deleteProjectBtn" class="btn small danger">削除</button>
+    </div>
+    <button id="menuToggle" class="btn small hamburger">☰</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="project">プロジェクト</button>
+    <button class="tab-btn" data-tab="manifest">マニフェスト</button>
+    <button class="tab-btn" data-tab="items">アイテム</button>
+    <button class="tab-btn" data-tab="blocks">ブロック</button>
+    <button class="tab-btn" data-tab="script">スクリプト</button>
+    <button class="tab-btn" data-tab="ai">AIアシスタント</button>
+    <button class="tab-btn" data-tab="export">書き出し・同期</button>
+  </nav>
+
+  <main id="content">
+
+    <!-- PROJECT -->
+    <section id="tab-project" class="tab-panel active">
+      <h2>プロジェクト設定</h2>
+      <p class="hint">アドオン全体の基本情報です。ここで設定した名前空間(namespace)がアイテムやブロックのIDの接頭辞になります。</p>
+      <div class="grid2">
+        <label>アドオン名
+          <input type="text" id="p_name" placeholder="例: マイワールド拡張">
+        </label>
+        <label>説明
+          <input type="text" id="p_desc" placeholder="例: 便利なアイテムとブロックを追加します">
+        </label>
+        <label>名前空間 (半角英数)
+          <input type="text" id="p_namespace" placeholder="例: mirai">
+        </label>
+        <label>対象バージョン (min_engine_version)
+          <input type="text" id="p_engine" placeholder="例: 1.21.0">
+        </label>
+        <label>アイコン画像 (共通・任意)
+          <input type="file" id="p_icon" accept="image/png,image/jpeg">
+        </label>
+        <div class="icon-preview" id="p_icon_preview"></div>
+      </div>
+      <label class="checkbox">
+        <input type="checkbox" id="p_useScript">
+        スクリプトAPI (@minecraft/server) を使う
+      </label>
+      <p class="hint">保存はブラウザ内(IndexedDB)に自動で行われます。他の端末とは共有されないので、書き出し(.mcaddon)で移動してください。</p>
+    </section>
+
+    <!-- MANIFEST -->
+    <section id="tab-manifest" class="tab-panel">
+      <h2>マニフェスト (manifest.json)</h2>
+      <p class="hint">ビヘイビアパック(BP)とリソースパック(RP)のマニフェストは、プロジェクト情報から自動生成されます。UUIDは初回生成時に自動採番され、以後固定されます(再生成も可能)。</p>
+      <div class="grid2">
+        <div>
+          <h3>Behavior Pack</h3>
+          <div class="kv" id="manifestBPInfo"></div>
+          <button class="btn small" id="regenBPUuid">UUIDを再生成</button>
+        </div>
+        <div>
+          <h3>Resource Pack</h3>
+          <div class="kv" id="manifestRPInfo"></div>
+          <button class="btn small" id="regenRPUuid">UUIDを再生成</button>
+        </div>
+      </div>
+      <h3>プレビュー</h3>
+      <div class="grid2">
+        <textarea id="manifestBPPreview" class="code-preview" readonly></textarea>
+        <textarea id="manifestRPPreview" class="code-preview" readonly></textarea>
+      </div>
+    </section>
+
+    <!-- ITEMS -->
+    <section id="tab-items" class="tab-panel">
+      <h2>アイテム</h2>
+      <div class="list-with-editor">
+        <div class="list-col">
+          <button class="btn" id="addItemBtn">＋ アイテムを追加</button>
+          <ul id="itemList" class="entity-list"></ul>
+        </div>
+        <div class="editor-col" id="itemEditor">
+          <p class="hint">左のリストからアイテムを選択、または追加してください。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOCKS -->
+    <section id="tab-blocks" class="tab-panel">
+      <h2>ブロック</h2>
+      <div class="list-with-editor">
+        <div class="list-col">
+          <button class="btn" id="addBlockBtn">＋ ブロックを追加</button>
+          <ul id="blockList" class="entity-list"></ul>
+        </div>
+        <div class="editor-col" id="blockEditor">
+          <p class="hint">左のリストからブロックを選択、または追加してください。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCRIPT -->
+    <section id="tab-script" class="tab-panel">
+      <h2>スクリプト (scripts/main.js)</h2>
+      <p class="hint" id="scriptDisabledHint">「プロジェクト」タブで「スクリプトAPIを使う」を有効にすると編集できます。</p>
+      <div id="scriptArea" style="display:none">
+        <div class="template-bar">
+          <span>テンプレート挿入:</span>
+          <select id="templateSelect"></select>
+          <button class="btn small" id="insertTemplateBtn">挿入</button>
+        </div>
+        <textarea id="scriptEditor" class="code-editor" spellcheck="false"></textarea>
+        <p class="hint">保存は入力のたびに自動で行われます。</p>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section id="tab-ai" class="tab-panel">
+      <h2>AIアシスタント</h2>
+      <p class="hint">やりたいこと(仕様)を日本語で入力すると、Anthropic (Claude) APIを使ってスクリプトやJSONを自動生成します。APIキーはこの端末のブラウザ内にのみ保存され、Anthropicへ直接送信されます(このサイトのサーバー等は経由しません)。</p>
+      <label>Anthropic APIキー
+        <input type="password" id="ai_apikey" placeholder="sk-ant-...">
+      </label>
+      <label>使用モデル
+        <select id="ai_model">
+          <option value="claude-sonnet-5">Claude Sonnet 5 (推奨・バランス)</option>
+          <option value="claude-opus-5">Claude Opus 5 (高性能・低速)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (高速・軽量)</option>
+        </select>
+      </label>
+      <label>生成モード
+        <select id="ai_mode">
+          <option value="script">スクリプト (scripts/main.js に追記)</option>
+          <option value="item">アイテムJSON (選択中のアイテムの「詳細JSON」に反映)</option>
+          <option value="block">ブロックJSON (選択中のブロックの「詳細JSON」に反映)</option>
+        </select>
+      </label>
+      <label>やりたいことの説明
+        <textarea id="ai_prompt" rows="5" placeholder="例: プレイヤーが特定のアイテムを右クリックしたら、周囲の敵をふっとばして自分を回復させる魔法の杖を作りたい"></textarea>
+      </label>
+      <button class="btn" id="ai_generate">コードを生成</button>
+      <div id="ai_status" class="hint"></div>
+      <h3>生成結果</h3>
+      <textarea id="ai_result" class="code-preview" rows="14" readonly></textarea>
+      <button class="btn small" id="ai_apply" style="display:none">この内容を反映する</button>
+    </section>
+
+    <!-- EXPORT -->
+    <section id="tab-export" class="tab-panel">
+      <h2>書き出し・同期</h2>
+
+      <div class="card">
+        <h3>方法1: .mcaddon をダウンロード (どの端末でも可)</h3>
+        <p class="hint">生成したファイル一式を1つの .mcaddon ファイルにまとめます。スマホでは、ダウンロード後にそのファイルをタップすればMinecraftにインポートできます。中身を変えるたびに再度ダウンロード＆インポートが必要です。</p>
+        <button class="btn" id="downloadMcaddonBtn">.mcaddon をダウンロード</button>
+      </div>
+
+      <div class="card">
+        <h3>方法2: フォルダに直接同期 (インストールし直し不要・対応ブラウザのみ)</h3>
+        <p class="hint">
+          PCのChrome/Edgeでは、Minecraftの <code>development_behavior_packs</code> と <code>development_resource_packs</code> 内のフォルダを直接選択して、編集内容をそのまま書き込めます。
+          一度接続すれば、以後はこのサイトで編集して「今すぐ同期」を押すだけで反映され、ワールドを一度閉じて開き直すだけで最新の状態を確認できます(新しいアドオンとして入れ直す必要はありません)。<br>
+          ※ この機能はブラウザの File System Access API に対応した環境(主にPC版Chrome/Edge)でのみ使えます。スマホ(Android/iOS)はOS側の制限で対応していない場合が多く、その場合は方法1をご利用ください。
+        </p>
+        <div id="fsapiUnsupported" class="warn" style="display:none">お使いのブラウザはこの機能に対応していません。方法1(.mcaddonダウンロード)をご利用ください。</div>
+        <div id="fsapiArea">
+          <div class="sync-row">
+            <button class="btn small" id="connectBPFolder">BPフォルダを選択</button>
+            <span id="bpFolderStatus" class="status-badge">未接続</span>
+          </div>
+          <div class="sync-row">
+            <button class="btn small" id="connectRPFolder">RPフォルダを選択</button>
+            <span id="rpFolderStatus" class="status-badge">未接続</span>
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" id="autoSyncToggle">
+            編集のたびに自動で同期する
+          </label>
+          <button class="btn" id="syncNowBtn">今すぐ同期</button>
+          <div id="syncStatus" class="hint"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
