@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイクラ アドオンメーカー</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛏️</text></svg>">
+<meta name="description" content="ブラウザだけでMinecraft統合版(Bedrock)のアドオン(.mcaddon)を作成できるツールです。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <span class="logo-emoji">⛏️</span>
+    <div class="logo-text">
+      <strong>マイクラ アドオンメーカー</strong>
+      <small>Minecraft Addon Maker (Bedrock)</small>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="btn-reset" class="btn btn-ghost" type="button">リセット</button>
+    <button id="btn-export" class="btn btn-primary" type="button">📦 .mcaddon をダウンロード</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab-btn active" data-tab="basic">基本情報</button>
+  <button class="tab-btn" data-tab="items">アイテム <span class="count" id="count-items">0</span></button>
+  <button class="tab-btn" data-tab="blocks">ブロック <span class="count" id="count-blocks">0</span></button>
+  <button class="tab-btn" data-tab="recipes">レシピ <span class="count" id="count-recipes">0</span></button>
+  <button class="tab-btn" data-tab="preview">プレビュー / 書き出し</button>
+</nav>
+
+<main>
+
+  <!-- 基本情報 -->
+  <section id="tab-basic" class="tab-panel active">
+    <div class="grid-2">
+      <div class="card">
+        <h2>アドオン情報</h2>
+        <label>アドオン名
+          <input type="text" id="meta-name" placeholder="例: マイ最強アドオン" maxlength="60">
+        </label>
+        <label>識別子 (半角英数字・アンダースコアのみ)
+          <input type="text" id="meta-namespace" placeholder="例: my_addon" maxlength="32">
+          <small class="hint">アイテムやブロックのIDの先頭に付く名前です (例: <code>my_addon:ruby</code>)。</small>
+        </label>
+        <label>説明
+          <textarea id="meta-desc" rows="3" placeholder="このアドオンの説明を書いてください"></textarea>
+        </label>
+        <label>作者名
+          <input type="text" id="meta-author" placeholder="例: あなたの名前">
+        </label>
+      </div>
+      <div class="card">
+        <h2>アイコン画像</h2>
+        <p class="hint">アドオンのアイコンにする画像(正方形推奨)をアップロードしてください。未設定の場合は自動生成されます。</p>
+        <div class="icon-upload">
+          <img id="meta-icon-preview" class="icon-preview" alt="アイコンプレビュー">
+          <div>
+            <input type="file" id="meta-icon" accept="image/png,image/jpeg">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-icon">画像を削除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- アイテム -->
+  <section id="tab-items" class="tab-panel">
+    <div class="grid-2">
+      <div class="card">
+        <h2 id="item-form-title">アイテムを追加</h2>
+        <form id="item-form">
+          <input type="hidden" id="item-edit-id">
+          <label>ID (半角英数字)
+            <input type="text" id="item-key" placeholder="例: ruby" required>
+          </label>
+          <label>表示名(日本語)
+            <input type="text" id="item-name-ja" placeholder="例: ルビー" required>
+          </label>
+          <label>表示名(英語)
+            <input type="text" id="item-name-en" placeholder="例: Ruby">
+          </label>
+          <label>テクスチャ画像 (16x16 推奨)
+            <input type="file" id="item-texture" accept="image/png,image/jpeg">
+          </label>
+          <img id="item-texture-preview" class="tex-preview" alt="">
+          <label>最大スタック数
+            <input type="number" id="item-stack" min="1" max="64" value="64">
+          </label>
+          <label>種類
+            <select id="item-type">
+              <option value="simple">通常アイテム</option>
+              <option value="food">食べ物</option>
+              <option value="tool">道具・武器</option>
+            </select>
+          </label>
+          <div id="item-food-fields" class="sub-fields hidden">
+            <label>満腹度回復量
+              <input type="number" id="item-food-nutrition" value="4" min="0">
+            </label>
+            <label>隠し満腹度
+              <input type="number" id="item-food-saturation" value="0.3" step="0.1" min="0">
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="item-food-always"> 満腹でも食べられる
+            </label>
+          </div>
+          <div id="item-tool-fields" class="sub-fields hidden">
+            <label>耐久値
+              <input type="number" id="item-tool-durability" value="250" min="1">
+            </label>
+            <label>攻撃力
+              <input type="number" id="item-tool-damage" value="3" min="0">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">アイテムを追加</button>
+            <button type="button" class="btn btn-ghost hidden" id="item-cancel-edit">編集をキャンセル</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>追加済みのアイテム</h2>
+        <div class="list" id="item-list"><p class="empty-hint">まだアイテムがありません。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ブロック -->
+  <section id="tab-blocks" class="tab-panel">
+    <div class="grid-2">
+      <div class="card">
+        <h2 id="block-form-title">ブロックを追加</h2>
+        <form id="block-form">
+          <input type="hidden" id="block-edit-id">
+          <label>ID (半角英数字)
+            <input type="text" id="block-key" placeholder="例: ruby_block" required>
+          </label>
+          <label>表示名(日本語)
+            <input type="text" id="block-name-ja" placeholder="例: ルビーブロック" required>
+          </label>
+          <label>表示名(英語)
+            <input type="text" id="block-name-en" placeholder="例: Ruby Block">
+          </label>
+          <label>テクスチャ画像 (全面共通・16x16 推奨)
+            <input type="file" id="block-texture" accept="image/png,image/jpeg">
+          </label>
+          <img id="block-texture-preview" class="tex-preview" alt="">
+          <label>硬さ (破壊にかかる時間の目安)
+            <input type="number" id="block-destroy-time" value="1.5" step="0.1" min="0">
+          </label>
+          <label>爆破耐性
+            <input type="number" id="block-explosion-resistance" value="6" step="0.5" min="0">
+          </label>
+          <label>マップの色
+            <input type="color" id="block-map-color" value="#a15c33">
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">ブロックを追加</button>
+            <button type="button" class="btn btn-ghost hidden" id="block-cancel-edit">編集をキャンセル</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>追加済みのブロック</h2>
+        <div class="list" id="block-list"><p class="empty-hint">まだブロックがありません。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- レシピ -->
+  <section id="tab-recipes" class="tab-panel">
+    <div class="grid-2">
+      <div class="card">
+        <h2>クラフトレシピを追加</h2>
+        <form id="recipe-form">
+          <label>作成方式
+            <select id="recipe-type">
+              <option value="shaped">形が決まったレシピ (3x3)</option>
+              <option value="shapeless">形が自由なレシピ (材料だけ)</option>
+            </select>
+          </label>
+          <label>できあがるもの
+            <select id="recipe-output"></select>
+          </label>
+          <label>個数
+            <input type="number" id="recipe-count" value="1" min="1" max="64">
+          </label>
+
+          <div id="recipe-shaped-fields">
+            <p class="hint">クラフト欄に材料IDを入力してください(空欄でもOK)。自作アイテム/ブロックはID、バニラ素材は候補から選べます。</p>
+            <div class="craft-grid" id="craft-grid"></div>
+          </div>
+
+          <div id="recipe-shapeless-fields" class="hidden">
+            <p class="hint">必要な材料を一覧で指定します。</p>
+            <div id="shapeless-list"></div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-add-ingredient">＋ 材料を追加</button>
+          </div>
+
+          <datalist id="ingredient-options"></datalist>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">レシピを追加</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>追加済みのレシピ</h2>
+        <div class="list" id="recipe-list"><p class="empty-hint">まだレシピがありません。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- プレビュー -->
+  <section id="tab-preview" class="tab-panel">
+    <div class="card">
+      <h2>プレビュー</h2>
+      <div id="preview-summary" class="preview-summary"></div>
+      <p class="hint">
+        ダウンロードした <code>.mcaddon</code> ファイルをスマホ/PCでタップまたはダブルクリックすると、
+        自動的にMinecraftへビヘイビアパックとリソースパックの両方がインポートされます。
+        ワールド作成画面でこの2つのパックを有効にして遊べます。
+      </p>
+      <button id="btn-export-2" class="btn btn-primary btn-lg" type="button">📦 .mcaddon をダウンロード</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<footer class="app-footer">
+  <p>すべての処理はブラウザ内だけで行われます。作成したデータはサーバーに送信されません。</p>
+</footer>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
